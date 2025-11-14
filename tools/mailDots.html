@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Permutation Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-card: #ffffff;
+            --bg-input: #f5f5f5;
+            --bg-button: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-button-hover: linear-gradient(135deg, #5568d3 0%, #63408a 100%);
+            --text-primary: #1a1a1a;
+            --text-secondary: #6b7280;
+            --text-button: #ffffff;
+            --border-color: #e5e7eb;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --accent: #667eea;
+            --accent-light: #818cf8;
+            --error-bg: #fee;
+            --error-border: #fcc;
+            --error-text: #c33;
+            --success: #10b981;
+            --hover-bg: #f3f4f6;
+            --gradient-overlay: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #1e1e1e;
+            --bg-input: #2a2a2a;
+            --bg-button: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-button-hover: linear-gradient(135deg, #7e94ff 0%, #8e5cb8 100%);
+            --text-primary: #f5f5f5;
+            --text-secondary: #a0a0a0;
+            --text-button: #ffffff;
+            --border-color: #333333;
+            --shadow: rgba(0, 0, 0, 0.4);
+            --accent: #818cf8;
+            --accent-light: #a5b4fc;
+            --error-bg: #3a1515;
+            --error-border: #5a2020;
+            --error-text: #ff6b6b;
+            --success: #34d399;
+            --hover-bg: #2a2a2a;
+            --gradient-overlay: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.3s ease, color 0.3s ease;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-overlay);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            padding: 0.75rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 6px 20px var(--shadow);
+        }
+
+        .icon-logo {
+            width: 80px;
+            height: 80px;
+            background: var(--bg-button);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 10px 30px var(--shadow);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .icon-logo svg {
+            width: 40px;
+            height: 40px;
+            stroke: white;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        h1 {
+            font-size: 3rem;
+            background: var(--bg-button);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 30px var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.6s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 12px 40px var(--shadow);
+            transform: translateY(-2px);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"] {
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            user-select: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .checkbox-label:hover {
+            color: var(--accent);
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        .btn-primary {
+            background: var(--bg-button);
+            color: var(--text-button);
+            border: none;
+            padding: 1.25rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: var(--bg-button-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .error {
+            background: var(--error-bg);
+            border: 2px solid var(--error-border);
+            color: var(--error-text);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            animation: shake 0.5s ease;
+        }
+
+        .error.show {
+            display: flex;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .results-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .count-badge {
+            background: var(--accent);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-left: 1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .btn-copy-all {
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-copy-all:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .email-list {
+            max-height: 500px;
+            overflow-y: auto;
+            display: grid;
+            gap: 0.75rem;
+            padding-right: 0.5rem;
+        }
+
+        .email-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .email-list::-webkit-scrollbar-track {
+            background: var(--bg-input);
+            border-radius: 10px;
+        }
+
+        .email-list::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        .email-item {
+            background: var(--bg-input);
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            animation: slideIn 0.4s ease-out forwards;
+            opacity: 0;
+        }
+
+        .email-item:hover {
+            background: var(--hover-bg);
+            border-color: var(--accent);
+            transform: translateX(5px);
+        }
+
+        .email-text {
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            color: var(--text-primary);
+            word-break: break-all;
+        }
+
+        .btn-copy {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+
+        .btn-copy:hover {
+            background: var(--accent);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .btn-copy.copied {
+            color: var(--success);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+            
+            .theme-toggle {
+                top: 1rem;
+                right: 1rem;
+            }
+            
+            .results-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <svg id="sunIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg id="moonIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
+    <div class="container">
+        <div class="header">
+            <div class="icon-logo">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+            </div>
+            <h1>Email Permutation Generator</h1>
+            <p class="subtitle">Generate all possible email variations with dot placements for any username</p>
+        </div>
+
+        <div class="card">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="johndoe" />
+                </div>
+                <div class="form-group">
+                    <label for="domain">Domain</label>
+                    <input type="text" id="domain" value="example.com" />
+                </div>
+            </div>
+
+            <div class="checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="lowercase" checked />
+                    <span>Convert to lowercase</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="sanitize" checked />
+                    <span>Sanitize username</span>
+                </label>
+            </div>
+
+            <button class="btn-primary" id="generateBtn">Generate Emails</button>
+
+            <div class="error" id="error">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span id="errorText"></span>
+            </div>
+        </div>
+
+        <div class="card results" id="results">
+            <div class="results-header">
+                <div>
+                    <span class="results-title">Generated Emails</span>
+                    <span class="count-badge" id="countBadge">0 variations</span>
+                </div>
+                <button class="btn-copy-all" id="copyAllBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    <span id="copyAllText">Copy All</span>
+                </button>
+            </div>
+            <div class="email-list" id="emailList"></div>
+        </div>
+    </div>
+
+    <script>
+        function sanitizeUsername(username, { lowercase = true } = {}) {
+            if (typeof username !== 'string') throw new TypeError('username must be a string');
+            let s = username.trim();
+            s = lowercase ? s.toLowerCase() : s.toUpperCase();
+            s = s.replace(/\s+/g, '');
+            s = s.replace(/[^a-z0-9!#$%&'*+\-/=?^_`{|}~.]/gi, '');
+            s = s.replace(/^\.+/, '').replace(/\.+$/, '');
+            s = s.replace(/\.{2,}/g, '.');
+            return s;
+        }
+
+        function isValidDomain(domain) {
+            return typeof domain === 'string' && /^[a-z0-9.-]+\.[a-z]{2,63}$/i.test(domain);
+        }
+
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function createAllPossibleEmails(username, options = {}) {
+            const {
+                domain = "example.com",
+                lowercase = true,
+                sanitize = true
+            } = options;
+
+            if (!isValidDomain(domain)) throw new Error("Invalid domain");
+            if (typeof username !== 'string' || username.length === 0) throw new Error("Invalid username");
+
+            let base = sanitize ? sanitizeUsername(username, { lowercase }) : (lowercase ? username.toLowerCase() : username.toUpperCase());
+            if (base.length === 0) throw new Error("Username contains no valid characters");
+
+            const results = new Set();
+            const chars = base.split('');
+            const n = chars.length;
+
+            function generate(idx, current) {
+                if (idx === n) {
+                    const cleaned = current.replace(/^\.+/, '').replace(/\.+$/, '').replace(/\.{2,}/g, '.');
+                    if (cleaned.length > 0) {
+                        const email = cleaned + "@" + domain;
+                        if (isValidEmail(email)) results.add(email);
+                    }
+                    return;
+                }
+                generate(idx + 1, current + chars[idx]);
+                if (idx < n - 1) generate(idx + 1, current + chars[idx] + ".");
+            }
+
+            generate(0, "");
+            return Array.from(results);
+        }
+
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+        const html = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            if (theme === 'dark') {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            } else {
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            }
+        }
+
+        // Email Generation
+        const generateBtn = document.getElementById('generateBtn');
+        const usernameInput = document.getElementById('username');
+        const domainInput = document.getElementById('domain');
+        const lowercaseCheckbox = document.getElementById('lowercase');
+        const sanitizeCheckbox = document.getElementById('sanitize');
+        const errorDiv = document.getElementById('error');
+        const errorText = document.getElementById('errorText');
+        const resultsDiv = document.getElementById('results');
+        const emailList = document.getElementById('emailList');
+        const countBadge = document.getElementById('countBadge');
+        const copyAllBtn = document.getElementById('copyAllBtn');
+        const copyAllText = document.getElementById('copyAllText');
+
+        let generatedEmails = [];
+
+        generateBtn.addEventListener('click', generateEmails);
+
+        function generateEmails() {
+            errorDiv.classList.remove('show');
+            resultsDiv.classList.remove('show');
+            emailList.innerHTML = '';
+
+            try {
+                const username = usernameInput.value;
+                const domain = domainInput.value;
+                const lowercase = lowercaseCheckbox.checked;
+                const sanitize = sanitizeCheckbox.checked;
+
+                generatedEmails = createAllPossibleEmails(username, {
+                    domain,
+                    lowercase,
+                    sanitize
+                });
+
+                if (generatedEmails.length > 0) {
+                    displayResults(generatedEmails);
+                }
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+
+        function displayResults(emails) {
+            countBadge.textContent = `${emails.length} variation${emails.length !== 1 ? 's' : ''}`;
+            
+            emails.forEach((email, index) => {
+                const emailItem = document.createElement('div');
+                emailItem.className = 'email-item';
+                emailItem.style.animationDelay = `${index * 0.05}s`;
+                
+                emailItem.innerHTML = `
+                    <span class="email-text">${email}</span>
+                    <button class="btn-copy" data-email="${email}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                `;
+                
+                emailList.appendChild(emailItem);
+            });
+
+            resultsDiv.classList.add('show');
+            attachCopyListeners();
+        }
+
+        function attachCopyListeners() {
+            document.querySelectorAll('.btn-copy').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const email = this.getAttribute('data-email');
+                    copyToClipboard(email, this);
+                });
+            });
+        }
+
+        copyAllBtn.addEventListener('click', () => {
+            const allEmails = generatedEmails.join('\n');
+            copyToClipboard(allEmails, copyAllBtn, true);
+        });
+
+        function copyToClipboard(text, button, isAll = false) {
+            navigator.clipboard.writeText(text).then(() => {
+                if (isAll) {
+                    copyAllText.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyAllText.textContent = 'Copy All';
+                    }, 2000);
+                } else {
+                    button.classList.add('copied');
+                    button.innerHTML = `
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    `;
+                    setTimeout(() => {
+                        button.classList.remove('copied');
+                        button.innerHTML = `
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        `;
+                    }, 2000);
+                }
+            });
+        }
+
+        function showError(message) {
+            errorText.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        // Enter key support
+        usernameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') generateEmails();
+        });
+        domainInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') generateEmails();
+        });
+    </script>
+</body>
+</html>
