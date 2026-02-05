@@ -732,6 +732,11 @@
     </style>
 </head>
 <body>
+
+    <audio id="bgMusic" autoplay loop muted>
+    <source src="https://i.top4top.io/m_36881m3540.mp3" type="audio/mpeg">
+  </audio>
+
     <div class="cursor"></div>
     <div class="cursor-follower"></div>
     
@@ -867,7 +872,13 @@
         const cursor = document.querySelector('.cursor');
         const follower = document.querySelector('.cursor-follower');
 
-        document.addEventListener('mousemove', (e) => {
+document.addEventListener('click', () => {
+      const audio = document.getElementById('bgMusic');
+      audio.muted = false;
+      audio.play();
+    }, { once: true });
+
+ document.addEventListener('mousemove', (e) => {
             cursor.style.left = e.clientX + 'px';
             cursor.style.top = e.clientY + 'px';
             
