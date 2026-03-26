@@ -1008,11 +1008,14 @@ function propertyIndirection(src) {
 
 // ── Variable renamer with unicode script ──
 function renameLocals(src, charset = "tifinagh") {
-  const scripts = {
-    glagolitic: Array.from({ length: 0x2C5F - 0x2C00 + 1 }, (_, i) => 0x2C00 + i),
-    tifinagh:   Array.from({length: 0x2D7F-0x2D30+1}, (_,i)=>String.fromCharCode(0x2D30+i)).filter(l=>/[\u2D30-\u2D65\u2D6F]/.test(l)),
-    runic:      Array.from({ length: 0x16FF - 0x16A0 + 1 }, (_, i) => 0x16A0 + i),
-  };
+const scripts = {
+  glagolitic: Array.from({ length: 0x2C5F - 0x2C00 + 1 }, (_, i) => String.fromCharCode(0x2C00 + i)),
+  tifinagh: [
+    'ⴰ','ⴱ','ⴳ','ⴷ','ⴻ','ⴼ','ⴽ','ⵀ','ⵃ','ⵄ','ⵅ','ⵇ','ⵉ','ⵊ','ⵍ',
+    'ⵎ','ⵏ','ⵓ','ⵔ','ⵖ','ⵙ','ⵚ','ⵛ','ⵜ','ⵡ','ⵢ','ⵣ','ⵥ'
+  ],
+  runic: Array.from({ length: 0x16FF - 0x16A0 + 1 }, (_, i) => String.fromCharCode(0x16A0 + i))
+};
   const key      = (charset || "tifinagh").toLowerCase();
   const charList = scripts[key] || scripts.tifinagh;
 
