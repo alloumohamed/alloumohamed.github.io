@@ -8,15 +8,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
 <style>
   :root {
-    --green:    #39ff14;
-    --green2:   #00c832;
-    --green3:   #007a1e;
-    --dark:     #030603;
-    --panel:    #060e06;
-    --border:   #0d2b0d;
-    --border2:  #1a4a1a;
-    --text:     #8fbe8f;
-    --dim:      #2d5c2d;
+    --pink:     #ff1493;
+    --pink2:    #ff69b4;
+    --pink3:    #a0135a;
+    --dark:     #07020a;
+    --panel:    #0c0212;
+    --border:   #2b0d1f;
+    --border2:  #4a1a33;
+    --text:     #c48fbe;
+    --dim:      #5c2d4a;
     --red:      #ff2d55;
     --amber:    #ffbe00;
   }
@@ -88,18 +88,18 @@
   .logo-ascii {
     font-family: 'VT323', monospace;
     font-size: clamp(28px, 5vw, 52px);
-    color: var(--green);
-    text-shadow: 0 0 12px #39ff14aa, 0 0 30px #39ff1444;
+    color: var(--pink);
+    text-shadow: 0 0 12px #ff1493aa, 0 0 30px #ff149344;
     letter-spacing: 6px;
     animation: glitch 6s infinite;
     display: block;
   }
 
   @keyframes glitch {
-    0%, 89%, 100% { transform: none; text-shadow: 0 0 12px #39ff14aa, 0 0 30px #39ff1444; }
-    90% { transform: translate(-2px, 0) skewX(-2deg); text-shadow: -3px 0 #ff2d55, 3px 0 #00c8ff, 0 0 12px #39ff14aa; }
-    92% { transform: translate(2px, 0) skewX(2deg); text-shadow: 3px 0 #ff2d55, -3px 0 #00c8ff, 0 0 12px #39ff14aa; }
-    94% { transform: none; text-shadow: 0 0 12px #39ff14aa, 0 0 30px #39ff1444; }
+    0%, 89%, 100% { transform: none; text-shadow: 0 0 12px #ff1493aa, 0 0 30px #ff149344; }
+    90% { transform: translate(-2px, 0) skewX(-2deg); text-shadow: -3px 0 #ff2d55, 3px 0 #00c8ff, 0 0 12px #ff1493aa; }
+    92% { transform: translate(2px, 0) skewX(2deg); text-shadow: 3px 0 #ff2d55, -3px 0 #00c8ff, 0 0 12px #ff1493aa; }
+    94% { transform: none; text-shadow: 0 0 12px #ff1493aa, 0 0 30px #ff149344; }
     95% { transform: translate(-1px, 1px); filter: hue-rotate(90deg); }
     97% { transform: none; filter: none; }
   }
@@ -123,12 +123,12 @@
   .badge {
     font-size: 10px;
     padding: 3px 10px;
-    border: 1px solid var(--green3);
-    color: var(--green3);
+    border: 1px solid var(--pink3);
+    color: var(--pink3);
     letter-spacing: 2px;
   }
 
-  .badge.active { border-color: var(--green2); color: var(--green2); }
+  .badge.active { border-color: var(--pink2); color: var(--pink2); }
 
   /* ── GRID LAYOUT ── */
   .main-grid {
@@ -150,7 +150,7 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--green2), transparent);
+    background: linear-gradient(90deg, transparent, var(--pink2), transparent);
     opacity: 0.5;
   }
 
@@ -160,13 +160,13 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: rgba(57,255,20,0.03);
+    background: rgba(255,20,147,0.03);
   }
 
   .panel-title {
     font-size: 11px;
     letter-spacing: 3px;
-    color: var(--green2);
+    color: var(--pink2);
     text-transform: uppercase;
     display: flex;
     align-items: center;
@@ -176,7 +176,7 @@
   .panel-title::before {
     content: '▶';
     font-size: 8px;
-    color: var(--green);
+    color: var(--pink);
     animation: blink 1.2s step-end infinite;
   }
 
@@ -193,14 +193,14 @@
     height: 320px;
     background: transparent;
     border: none;
-    color: var(--green);
+    color: var(--pink);
     font-family: 'Share Tech Mono', monospace;
     font-size: 13px;
     line-height: 1.6;
     padding: 14px;
     resize: none;
     outline: none;
-    caret-color: var(--green);
+    caret-color: var(--pink);
   }
 
   textarea::placeholder {
@@ -209,11 +209,11 @@
   }
 
   textarea:focus {
-    background: rgba(57,255,20,0.02);
+    background: rgba(255,20,147,0.02);
   }
 
   #output-area {
-    color: #5fdd5f;
+    color: #f07acc;
     cursor: default;
   }
 
@@ -238,7 +238,7 @@
     transition: background 0.15s;
   }
 
-  .option-item:hover { background: rgba(57,255,20,0.03); }
+  .option-item:hover { background: rgba(255,20,147,0.03); }
 
   .option-label {
     font-size: 11px;
@@ -288,14 +288,14 @@
   }
 
   .toggle input:checked + .toggle-track {
-    background: rgba(57,255,20,0.15);
-    border-color: var(--green2);
+    background: rgba(255,20,147,0.15);
+    border-color: var(--pink2);
   }
 
   .toggle input:checked + .toggle-track::after {
     transform: translateX(18px);
-    background: var(--green);
-    box-shadow: 0 0 6px var(--green);
+    background: var(--pink);
+    box-shadow: 0 0 6px var(--pink);
   }
 
   /* Charset selector */
@@ -336,13 +336,13 @@
     transition: all 0.15s;
   }
 
-  .charset-btn:hover { border-color: var(--green3); color: var(--text); }
+  .charset-btn:hover { border-color: var(--pink3); color: var(--text); }
 
   .charset-btn.active {
-    border-color: var(--green);
-    color: var(--green);
-    background: rgba(57,255,20,0.07);
-    box-shadow: 0 0 8px rgba(57,255,20,0.2);
+    border-color: var(--pink);
+    color: var(--pink);
+    background: rgba(255,20,147,0.07);
+    box-shadow: 0 0 8px rgba(255,20,147,0.2);
   }
 
   /* ── ACTION BAR ── */
@@ -380,14 +380,14 @@
   .btn:hover::before { opacity: 0.08; }
 
   .btn-primary {
-    border-color: var(--green);
-    color: var(--green);
-    box-shadow: 0 0 12px rgba(57,255,20,0.2), inset 0 0 12px rgba(57,255,20,0.04);
+    border-color: var(--pink);
+    color: var(--pink);
+    box-shadow: 0 0 12px rgba(255,20,147,0.2), inset 0 0 12px rgba(255,20,147,0.04);
   }
 
   .btn-primary:hover {
-    box-shadow: 0 0 20px rgba(57,255,20,0.5), inset 0 0 20px rgba(57,255,20,0.08);
-    text-shadow: 0 0 8px var(--green);
+    box-shadow: 0 0 20px rgba(255,20,147,0.5), inset 0 0 20px rgba(255,20,147,0.08);
+    text-shadow: 0 0 8px var(--pink);
   }
 
   .btn-primary:active { transform: scale(0.98); }
@@ -399,7 +399,7 @@
     padding: 9px 18px;
   }
 
-  .btn-secondary:hover { border-color: var(--green3); color: var(--green2); }
+  .btn-secondary:hover { border-color: var(--pink3); color: var(--pink2); }
 
   .btn-danger {
     border-color: var(--red);
@@ -421,7 +421,7 @@
   }
 
   .stat { display: flex; flex-direction: column; align-items: flex-end; }
-  .stat span { color: var(--green2); font-size: 13px; }
+  .stat span { color: var(--pink2); font-size: 13px; }
 
   /* ── OUTPUT ACTIONS ── */
   .output-actions {
@@ -453,7 +453,7 @@
     transition: background 0.3s, box-shadow 0.3s;
   }
 
-  .status-dot.ready { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s ease-in-out infinite; }
+  .status-dot.ready { background: var(--pink); box-shadow: 0 0 6px var(--pink); animation: pulse 2s ease-in-out infinite; }
   .status-dot.working { background: var(--amber); box-shadow: 0 0 6px var(--amber); animation: spin 0.6s linear infinite; }
   .status-dot.error { background: var(--red); box-shadow: 0 0 6px var(--red); }
 
@@ -462,7 +462,7 @@
 
   .status-text { color: var(--text); }
   .status-text.error { color: var(--red); }
-  .status-text.success { color: var(--green); }
+  .status-text.success { color: var(--pink); }
 
   .status-time { margin-left: auto; color: var(--dim); }
 
@@ -472,9 +472,9 @@
     bottom: 0; left: 0;
     height: 2px;
     width: 0%;
-    background: linear-gradient(90deg, var(--green3), var(--green));
+    background: linear-gradient(90deg, var(--pink3), var(--pink));
     transition: width 0.3s ease;
-    box-shadow: 0 0 8px var(--green);
+    box-shadow: 0 0 8px var(--pink);
   }
 
   /* ── COPY FLASH ── */
@@ -484,12 +484,12 @@
     left: 50%;
     transform: translateX(-50%) translateY(-60px);
     background: rgba(6,14,6,0.95);
-    border: 1px solid var(--green);
+    border: 1px solid var(--pink);
     padding: 10px 24px;
     font-size: 12px;
     letter-spacing: 3px;
-    color: var(--green);
-    box-shadow: 0 0 20px rgba(57,255,20,0.4);
+    color: var(--pink);
+    box-shadow: 0 0 20px rgba(255,20,147,0.4);
     z-index: 1000;
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     pointer-events: none;
@@ -512,7 +512,7 @@
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: var(--dark); }
   ::-webkit-scrollbar-thumb { background: var(--border2); }
-  ::-webkit-scrollbar-thumb:hover { background: var(--green3); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--pink3); }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
@@ -548,7 +548,33 @@
     cursor: pointer;
   }
 
-  select:focus { border-color: var(--green3); }
+  select:focus { border-color: var(--pink3); }
+
+  /* ── FOOTER CREDIT ── */
+  .footer-line {
+    font-size: 10px;
+    color: var(--dim);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .footer-credit {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    letter-spacing: 6px;
+    margin-top: 4px;
+  }
+
+  .credit-names {
+    color: var(--pink);
+    text-shadow: 0 0 10px #ff1493cc, 0 0 24px #ff149366, 0 0 48px #ff149322;
+    animation: creditPulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes creditPulse {
+    0%, 100% { text-shadow: 0 0 10px #ff1493cc, 0 0 24px #ff149366, 0 0 48px #ff149322; }
+    50%       { text-shadow: 0 0 18px #ff1493ff, 0 0 40px #ff1493aa, 0 0 80px #ff149355; }
+  }
 </style>
 </head>
 <body>
@@ -729,7 +755,8 @@ greet('World');"
   </div><!-- /main-grid -->
 
   <footer>
-    VOID_OBF :: BROWSER-NATIVE ENGINE :: ALL OPERATIONS LOCAL :: NO DATA TRANSMITTED :: BY ALLOU AND MISSU
+    <div class="footer-line">VOID_OBF :: BROWSER-NATIVE ENGINE :: ALL OPERATIONS LOCAL :: NO DATA TRANSMITTED</div>
+    <div class="footer-credit">© <span class="credit-names">ALLOU &amp; MISSU</span></div>
   </footer>
 </div>
 
@@ -753,12 +780,18 @@ function randomId(len = 6) {
 
 // ── Unicode codepoint pools ──
 const SAFE_CODEPOINTS = [
+  // Latin Extended-A/B (assigned letters only)
   ...Array.from({ length: 0x024F - 0x00C0 + 1 }, (_, i) => 0x00C0 + i)
     .filter(cp => !(cp >= 0x00D8 && cp <= 0x00F6) && cp !== 0x00F7),
+  // Cyrillic (all assigned in this block)
   ...Array.from({ length: 0x04FF - 0x0400 + 1 }, (_, i) => 0x0400 + i),
+  // Greek (all assigned in this block)
   ...Array.from({ length: 0x03FF - 0x0370 + 1 }, (_, i) => 0x0370 + i),
+  // CJK Unified Ideographs (valid identifier chars in ES2015+)
   ...Array.from({ length: 0x9FFF - 0x4E00 + 1 }, (_, i) => 0x4E00 + i),
-  ...Array.from({ length: 0x058F - 0x0530 + 1 }, (_, i) => 0x0530 + i),
+  // Armenian letters only — 0x0531-0x0556 uppercase, 0x0561-0x0587 lowercase (skip unassigned gaps)
+  ...Array.from({ length: 0x0556 - 0x0531 + 1 }, (_, i) => 0x0531 + i),
+  ...Array.from({ length: 0x0587 - 0x0561 + 1 }, (_, i) => 0x0561 + i),
 ];
 
 function randomUnicodeId(len = 5) {
@@ -1009,17 +1042,26 @@ function propertyIndirection(src) {
 // ── Variable renamer with unicode script ──
 function renameLocals(src, charset = "tifinagh") {
   const scripts = {
-    glagolitic: Array.from({ length: 0x2C5F - 0x2C00 + 1 }, (_, i) => 0x2C00 + i),
-    tifinagh:   Array.from({ length: 0x2D7F - 0x2D30 + 1 }, (_, i) => 0x2D30 + i),
-    runic:      Array.from({ length: 0x16FF - 0x16A0 + 1 }, (_, i) => 0x16A0 + i),
+    // Only assigned Unicode letter codepoints — avoids "unexpected token" from unassigned slots
+    glagolitic: [
+      ...Array.from({ length: 0x2C2E - 0x2C00 + 1 }, (_, i) => 0x2C00 + i), // Glagolitic capital letters
+      ...Array.from({ length: 0x2C5E - 0x2C30 + 1 }, (_, i) => 0x2C30 + i), // Glagolitic small letters
+    ],
+    tifinagh: Array.from({ length: 0x2D65 - 0x2D30 + 1 }, (_, i) => 0x2D30 + i), // Tifinagh letters only (skip unassigned 0x2D66+)
+    runic: [
+      ...Array.from({ length: 0x16EA - 0x16A0 + 1 }, (_, i) => 0x16A0 + i), // Runic letters
+      ...Array.from({ length: 0x16F8 - 0x16F1 + 1 }, (_, i) => 0x16F1 + i), // Extended Runic letters (skip punctuation 0x16EB-0x16ED)
+    ],
   };
   const key      = (charset || "tifinagh").toLowerCase();
   const charList = scripts[key] || scripts.tifinagh;
 
   function rndName(len = 5) {
-    return Array.from({ length: len }, () =>
+    // First char must be a valid identifier start — use a safe Latin prefix then unicode body
+    const body = Array.from({ length: len }, () =>
       String.fromCodePoint(charList[Math.floor(Math.random() * charList.length)])
     ).join("");
+    return "_" + body;
   }
 
   const RESERVED = new Set([
@@ -1073,25 +1115,40 @@ function renameLocals(src, charset = "tifinagh") {
 }
 
 // ── Opaque predicate injection (always-true conditions) ──
+// FIXED: skips structural/continuation lines to avoid invalid syntax in large modules
 function addOpaquePredicates(src) {
   const lines = src.split("\n");
   return lines.map(line => {
-    if (!line.trim() || line.trim().startsWith("//")) return line;
-    if (!(line.includes(";") || line.includes("{"))) return line;
-    if (Math.random() < 0.45) return line; // ~45% of lines get wrapped
+    const t = line.trim();
+    // Skip empty lines and comments
+    if (!t || t.startsWith("//") || t.startsWith("/*") || t.startsWith("*")) return line;
+    // Skip bare braces (block structure — wrapping breaks nesting)
+    if (/^\s*[{}]/.test(line) || /^\s*[}\])]/.test(line)) return line;
+    // Skip switch case / default labels
+    if (/^\s*(case\s|default\s*:)/.test(line)) return line;
+    // Skip method-chain continuations
+    if (/^\s*\./.test(line)) return line;
+    // Skip lines that continue on the next line (end with , ( [ ? : && ||)
+    if (/[,(\[?:&|\\]\s*$/.test(t)) return line;
+    // Skip else/catch/finally blocks
+    if (/^\s*(else|catch|finally)[\s{]/.test(line)) return line;
+    // Only wrap lines that look like complete statements
+    if (!t.endsWith(";") && !t.endsWith("{") && !t.endsWith("}")) return line;
+    // Wrap only ~38% of eligible lines (keep output lean)
+    if (Math.random() < 0.62) return line;
 
     const r = Math.random();
     let cond;
     if (r < 0.33) {
       const a = Math.floor(Math.random() * 100);
       const b = Math.floor(Math.random() * 100);
-      cond = `(${a}+${b})===(${a + b})`;         // always true
+      cond = `(${a}+${b})===${a + b}`;           // always true
     } else if (r < 0.66) {
-      const a = Math.floor(Math.random() * 100);
-      cond = `(typeof ${randomId(3)}===typeof undefined)`;  // always true
-    } else {
       const a = Math.floor(Math.random() * 0x7F) + 1;
-      cond = `(${a}|0)===${a}`;                   // always true for integers
+      cond = `(${a}|0)===${a}`;                  // always true for integers
+    } else {
+      const a = Math.floor(Math.random() * 0xFFFF) + 1;
+      cond = `(${a}^0)===${a}`;                  // XOR with 0 is always identity
     }
     return `if(${cond}){${line}}`;
   }).join("\n");
@@ -1186,7 +1243,7 @@ function obfuscate(src, options = {}) {
     result =
       `(async function(){var _chk="${tag}";try{\n` +
       result +
-      `\n}catch(_e_){if(_e_ instanceof SyntaxError){console.log("integrity check failed");}throw _e_;}})();`;
+      `\n}catch(_e_){if(_e_ instanceof SyntaxError){console.log("Error Allou isn't happy! don't bypass ):<");}throw _e_;}})();`;
   }
 
   return result;
@@ -1430,7 +1487,7 @@ statusTime.textContent = new Date().toLocaleTimeString();
   }
 
   function draw() {
-    ctx.fillStyle = "rgba(3,6,3,0.05)";
+    ctx.fillStyle = "rgba(7,2,10,0.05)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.font      = FONT_SIZE + "px 'Share Tech Mono', monospace";
     for (let i = 0; i < cols; i++) {
@@ -1440,9 +1497,9 @@ statusTime.textContent = new Date().toLocaleTimeString();
       if (bright > 0.97) {
         ctx.fillStyle = "#ffffff";
       } else if (bright > 0.8) {
-        ctx.fillStyle = "#39ff14";
+        ctx.fillStyle = "#ff1493";
       } else {
-        ctx.fillStyle = "#00c832";
+        ctx.fillStyle = "#ff69b4";
       }
       ctx.fillText(ch, i * FONT_SIZE, drops[i] * FONT_SIZE);
       if (drops[i] * FONT_SIZE > canvas.height && Math.random() > 0.975) drops[i] = 0;
