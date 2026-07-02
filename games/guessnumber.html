@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guess Number Game</title>
+<style>
+  :root{
+    --bg:#15171c;
+    --panel:#1d2027;
+    --panel-border:#2a2e37;
+    --accent:#57AC58;
+    --accent-dim:#417642;
+    --yellow:#E9BE00;
+    --text:#e8e9ec;
+    --text-dim:#8b8f99;
+    --danger:#590000;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--bg);
+    font-family:"Segoe UI",Arial,sans-serif;
+    color:var(--text);
+    display:flex;
+    justify-content:center;
+    padding:24px 12px 60px;
+  }
+  .app{
+    width:100%;
+    max-width:1000px;
+  }
+  header{
+    text-align:center;
+    margin-bottom:20px;
+  }
+  header h1{
+    font-size:22px;
+    letter-spacing:2px;
+    margin:0 0 4px;
+    color:var(--text);
+    font-weight:700;
+  }
+  header p{
+    margin:0;
+    color:var(--text-dim);
+    font-size:13px;
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:10px;
+    padding:18px;
+    margin-bottom:16px;
+  }
+  .controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .control-group{
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .control-group label{
+    font-size:12px;
+    color:var(--text-dim);
+    text-transform:uppercase;
+    letter-spacing:1px;
+  }
+  select, button, input[type=text]{
+    font-family:inherit;
+    font-size:14px;
+    border-radius:6px;
+    border:1px solid var(--panel-border);
+    background:#262a33;
+    color:var(--text);
+    padding:8px 12px;
+    outline:none;
+  }
+  select:focus, input:focus{
+    border-color:var(--accent);
+  }
+  button{
+    cursor:pointer;
+    background:var(--accent-dim);
+    border-color:var(--accent-dim);
+    color:#fff;
+    font-weight:600;
+    transition:background .15s ease;
+  }
+  button:hover{
+    background:var(--accent);
+  }
+  button:disabled{
+    background:#33363f;
+    border-color:#33363f;
+    color:var(--text-dim);
+    cursor:not-allowed;
+  }
+  .stats{
+    display:flex;
+    gap:18px;
+    font-size:13px;
+    color:var(--text-dim);
+  }
+  .stats b{
+    color:var(--text);
+  }
+  .board-wrap{
+    display:flex;
+    justify-content:center;
+    overflow-x:auto;
+    padding:8px;
+  }
+  canvas{
+    max-width:100%;
+    height:auto;
+    border-radius:8px;
+  }
+  .play-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .play-row input[type=text]{
+    width:220px;
+    text-align:center;
+    letter-spacing:4px;
+    font-size:18px;
+    font-weight:700;
+  }
+  .message{
+    text-align:center;
+    min-height:20px;
+    font-size:14px;
+    margin-top:10px;
+  }
+  .message.win{ color:var(--accent); }
+  .message.loss{ color:#e05a5a; }
+  .message.info{ color:var(--text-dim); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>GUESS NUMBER GAME</h1>
+    <p>Reply with your guess after each round. Same rules, same board, browser edition.</p>
+  </header>
+
+  <div class="panel">
+    <div class="controls">
+      <div class="control-group">
+        <label for="colSelect">Digits</label>
+        <select id="colSelect">
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <button id="newGameBtn">New Game</button>
+      </div>
+      <div class="stats">
+        <span>Points: <b id="statPoints">0</b></span>
+        <span>Wins: <b id="statWins">0</b></span>
+        <span>Losses: <b id="statLosses">0</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="board-wrap">
+      <canvas id="board"></canvas>
+    </div>
+    <div class="play-row">
+      <input type="text" id="guessInput" placeholder="Enter your guess" maxlength="6" autocomplete="off">
+      <button id="submitBtn">Guess</button>
+    </div>
+    <div class="message info" id="message">Press "New Game" to start.</div>
+  </div>
+</div>
+
+<script>
+const rows = [
+  { col: 4, row: 10, rewardPoint: 1 },
+  { col: 5, row: 12, rewardPoint: 2 },
+  { col: 6, row: 15, rewardPoint: 3 }
+];
+
+const heightGameName = 40;
+const yGameName = 150;
+const sizeOfOneSquare = 100;
+const lineWidth = 6;
+const radius = 10;
+const distance = 10;
+const marginX = 150;
+const marginY = 100;
+const backgroundColor = '#F0F2F5';
+
+const fontGameGuide = '35px Arial';
+const fontGameName = 'bold 50px Arial';
+const fontNumbers = 'bold 60px Arial';
+const fontSuggest = 'bold 40px Arial';
+const fontResultWin = 'bold 150px "Times New Roman"';
+const fontResultLose = 'bold 150px Arial';
+const marginText = 2.9;
+const lineHeightGuideText = 38;
+
+const boardCanvas = document.getElementById('board');
+let ctx = boardCanvas.getContext('2d');
+let highlightCanvas = document.createElement('canvas');
+let ctxHighlight = highlightCanvas.getContext('2d');
+let numbersCanvas = document.createElement('canvas');
+let ctxNumbers = numbersCanvas.getContext('2d');
+
+let state = null;
+
+const colSelect = document.getElementById('colSelect');
+const newGameBtn = document.getElementById('newGameBtn');
+const guessInput = document.getElementById('guessInput');
+const submitBtn = document.getElementById('submitBtn');
+const messageEl = document.getElementById('message');
+
+function wrapTextGetHeight(c, text, maxWidth, lineHeight, margin = 0) {
+  const lines = text.split('\n');
+  let height = 0;
+  let count = 0;
+  for (let i = 0; i < lines.length; i++) {
+    let line = '';
+    const words = lines[i].split(' ');
+    for (let n = 0; n < words.length; n++) {
+      const textLine = line + words[n] + ' ';
+      const textWidth = c.measureText(textLine).width;
+      if (textWidth > maxWidth && n > 0) {
+        line = words[n] + ' ';
+        height += lineHeight;
+        count++;
+      } else {
+        line = textLine;
+      }
+    }
+    height += lineHeight;
+    count++;
+  }
+  return height + margin * count;
+}
+
+function wrapText(c, text, x, y, maxWidth, lineHeight) {
+  const yStart = y;
+  const lines = text.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    let line = '';
+    const words = lines[i].split(' ');
+    for (let n = 0; n < words.length; n++) {
+      const textLine = line + words[n] + ' ';
+      const textWidth = c.measureText(textLine).width;
+      if (textWidth > maxWidth && n > 0) {
+        c.fillText(line, x, y);
+        line = words[n] + ' ';
+        y += lineHeight;
+      } else {
+        line = textLine;
+      }
+    }
+    c.fillText(line, x, y);
+    y += lineHeight;
+  }
+  return y - yStart;
+}
+
+function drawBorderSquareRadius(c, x, y, width, height, r = 5, lw = 1, strokeStyle = '#000', fill) {
+  c.save();
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.lineTo(x + width - r, y);
+  c.quadraticCurveTo(x + width, y, x + width, y + r);
+  c.lineTo(x + width, y + height - r);
+  c.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  c.lineTo(x + r, y + height);
+  c.quadraticCurveTo(x, y + height, x, y + height - r);
+  c.lineTo(x, y + r);
+  c.quadraticCurveTo(x, y, x + r, y);
+  c.closePath();
+  if (fill) {
+    c.fillStyle = strokeStyle;
+    c.fill();
+  } else {
+    c.strokeStyle = strokeStyle;
+    c.lineWidth = lw;
+    c.stroke();
+  }
+  c.restore();
+}
+
+function drawWrappedText(c, text, startY, wrapWidth, lineHeight, boldFirstLine, margin, marginTextVal) {
+  const splitText = text.split('\n');
+  let y = startY;
+  for (let i = 0; i < splitText.length; i++) {
+    if (i === 0 && boldFirstLine) c.font = `bold ${c.font}`;
+    else c.font = c.font.replace('bold ', '');
+    const height = wrapText(c, splitText[i], margin / 2, y, wrapWidth, lineHeight);
+    y += height + marginTextVal;
+  }
+  return y;
+}
+
+function getPositionOfSquare(x, y, size, dist, mX, mY, lw, hName) {
+  const xOutSide = mX + x * (size + dist) + lw / 2;
+  const yOutSide = mY + y * (size + dist) + lw / 2 + hName;
+  const xInSide = xOutSide + lw;
+  const yInSide = yOutSide + lw;
+  return { xOutSide, yOutSide, xInSide, yInSide };
+}
+
+function randomAnswer(col) {
+  const digits = ['0','1','2','3','4','5','6','7','8','9'];
+  for (let i = digits.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [digits[i], digits[j]] = [digits[j], digits[i]];
+  }
+  return digits.slice(0, col).join('');
+}
+
+function setupBoard(col, row) {
+  const gameName = 'GUESS NUMBER GAME';
+  const gameGuide = `How to play:\nYou have ${row} guesses.\nAfter each guess, you will get additional hints of the number of correct digits (shown on the left) and the number of correct digits (shown on the right).`;
+  const gameNote = `Note:\nThe number is formed with digits from 0 to 9, each digit appears only once and the number can start with 0.`;
+
+  const measureCtx = document.createElement('canvas').getContext('2d');
+  measureCtx.font = fontGameGuide;
+  const xCanvas = col * sizeOfOneSquare + (col - 1) * distance + marginX * 2;
+  const heightGameGuide = wrapTextGetHeight(measureCtx, gameGuide, xCanvas - marginX, lineHeightGuideText, marginText);
+  const heightGameNote = wrapTextGetHeight(measureCtx, gameNote, xCanvas - marginX, lineHeightGuideText, marginText);
+  const marginGuideNote = 10;
+
+  boardCanvas.width = xCanvas;
+  boardCanvas.height = heightGameName + row * sizeOfOneSquare + (row - 1) * distance + marginY * 2 + heightGameGuide + heightGameNote + marginGuideNote;
+
+  ctx = boardCanvas.getContext('2d');
+  ctx.fillStyle = backgroundColor;
+  ctx.fillRect(0, 0, boardCanvas.width, boardCanvas.height);
+
+  ctx.font = fontGameName;
+  ctx.fillStyle = '#404040';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(gameName, boardCanvas.width / 2, yGameName / 2);
+
+  ctx.font = fontGameGuide;
+  ctx.fillStyle = '#404040';
+  ctx.textAlign = 'left';
+  const yGuide = heightGameName + marginY / 2 + row * (sizeOfOneSquare + distance) + marginY / 2 + lineHeightGuideText * 2;
+
+  const yNote = drawWrappedText(ctx, gameGuide, yGuide, boardCanvas.width - marginX, lineHeightGuideText, true, marginX, marginText);
+  drawWrappedText(ctx, gameNote, yNote + 10, boardCanvas.width - marginX, lineHeightGuideText, true, marginX, marginText);
+
+  for (let i = 0; i < col; i++) {
+    for (let j = 0; j < row; j++) {
+      const { xOutSide, yOutSide, xInSide, yInSide } = getPositionOfSquare(i, j, sizeOfOneSquare, distance, marginX, marginY, lineWidth, heightGameName);
+      drawBorderSquareRadius(ctx, xOutSide, yOutSide, sizeOfOneSquare, sizeOfOneSquare, radius, lineWidth, '#919191', true);
+      drawBorderSquareRadius(ctx, xInSide, yInSide, sizeOfOneSquare - lineWidth * 2, sizeOfOneSquare - lineWidth * 2, radius / 2, lineWidth, backgroundColor, true);
+    }
+  }
+
+  highlightCanvas.width = boardCanvas.width;
+  highlightCanvas.height = boardCanvas.height;
+  numbersCanvas.width = boardCanvas.width;
+  numbersCanvas.height = boardCanvas.height;
+  ctxHighlight = highlightCanvas.getContext('2d');
+  ctxNumbers = numbersCanvas.getContext('2d');
+}
+
+function newGame() {
+  const col = parseInt(colSelect.value, 10);
+  const levelOfDifficult = rows.find(item => item.col === col);
+  const row = levelOfDifficult.row;
+
+  setupBoard(col, row);
+
+  state = {
+    col,
+    row,
+    tryNumber: 0,
+    answer: randomAnswer(col),
+    isOver: false,
+    rewardPoint: levelOfDifficult.rewardPoint,
+    startTime: Date.now()
+  };
+
+  guessInput.value = '';
+  guessInput.maxLength = col;
+  guessInput.placeholder = `Enter ${col} digits`;
+  guessInput.disabled = false;
+  submitBtn.disabled = false;
+  setMessage(`Enter your ${col}-digit guess and submit.`, 'info');
+}
+
+function setMessage(text, cls) {
+  messageEl.textContent = text;
+  messageEl.className = 'message ' + (cls || 'info');
+}
+
+function playGuess(numbers) {
+  const { col, row, answer } = state;
+  let tryNumber = state.tryNumber;
+
+  ctxNumbers.font = fontNumbers;
+  ctxNumbers.fillStyle = '#f0f0f0';
+  ctxNumbers.textAlign = 'center';
+  ctxNumbers.textBaseline = 'middle';
+
+  for (let i = 0; i < col; i++) {
+    const { xOutSide, yOutSide, xInSide, yInSide } = getPositionOfSquare(i, tryNumber, sizeOfOneSquare, distance, marginX, marginY, lineWidth, heightGameName);
+    drawBorderSquareRadius(ctx, xInSide, yInSide, sizeOfOneSquare - lineWidth * 2, sizeOfOneSquare - lineWidth * 2, radius / 2, lineWidth, '#a3a3a3', true);
+    const x = xOutSide + sizeOfOneSquare / 2;
+    const y = yOutSide + sizeOfOneSquare / 2;
+    ctxNumbers.fillText(numbers[i], x, y);
+
+    if (answer.includes(numbers[i]) || numbers[i] === answer[i]) {
+      drawBorderSquareRadius(ctxHighlight, xOutSide, yOutSide, sizeOfOneSquare, sizeOfOneSquare, radius, lineWidth, numbers[i] === answer[i] ? '#417642' : '#A48502', true);
+      drawBorderSquareRadius(ctxHighlight, xInSide, yInSide, sizeOfOneSquare - lineWidth * 2, sizeOfOneSquare - lineWidth * 2, radius / 2, lineWidth, numbers[i] === answer[i] ? '#57AC58' : '#E9BE00', true);
+    }
+  }
+
+  let numberRight = 0;
+  let numberRightPosition = 0;
+  answer.split('').forEach((item, index) => {
+    if (numbers.includes(item)) numberRight++;
+    if (item === numbers[index]) numberRightPosition++;
+  });
+
+  ctx.font = fontSuggest;
+  ctx.fillStyle = '#404040';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(numberRight, marginX / 2, marginY + sizeOfOneSquare / 2 + heightGameName + tryNumber * (sizeOfOneSquare + distance));
+  ctx.fillText(numberRightPosition, marginX + col * sizeOfOneSquare + distance * (col - 1) + marginX / 2, marginY + sizeOfOneSquare / 2 + heightGameName + tryNumber * (sizeOfOneSquare + distance));
+
+  let isWin = null;
+  if ((numberRight === col && numberRightPosition === col) || tryNumber + 1 === row) {
+    isWin = numberRight === col && numberRightPosition === col;
+    ctx.save();
+    ctx.drawImage(highlightCanvas, 0, 0);
+    ctx.drawImage(numbersCanvas, 0, 0);
+
+    ctx.font = isWin ? fontResultWin : fontResultLose;
+    ctx.fillStyle = isWin ? '#005900' : '#590000';
+    ctx.globalAlpha = 0.4;
+    ctx.translate(boardCanvas.width / 2, marginY + heightGameName + (row * (sizeOfOneSquare + distance)) / 2);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.rotate(-45 * Math.PI / 180);
+    ctx.fillText(isWin ? 'YOU WIN' : answer.split('').join(' '), 0, 0);
+    ctx.restore();
+  } else {
+    ctx.drawImage(numbersCanvas, 0, 0);
+  }
+
+  state.tryNumber++;
+  return isWin;
+}
+
+function loadStats() {
+  try {
+    return JSON.parse(localStorage.getItem('gnv2_stats')) || { points: 0, wins: [], losses: [] };
+  } catch (e) {
+    return { points: 0, wins: [], losses: [] };
+  }
+}
+
+function saveStats(stats) {
+  localStorage.setItem('gnv2_stats', JSON.stringify(stats));
+}
+
+function refreshStatsUI() {
+  const stats = loadStats();
+  document.getElementById('statPoints').textContent = stats.points;
+  document.getElementById('statWins').textContent = stats.wins.length;
+  document.getElementById('statLosses').textContent = stats.losses.length;
+}
+
+function recordResult(isWin, tryNumber) {
+  const stats = loadStats();
+  const data = {
+    tryNumber,
+    timeSuccess: Date.now() - state.startTime,
+    date: Date.now(),
+    col: state.col
+  };
+  if (isWin) {
+    stats.wins.push(data);
+    stats.points += state.rewardPoint;
+  } else {
+    delete data.tryNumber;
+    stats.losses.push(data);
+  }
+  saveStats(stats);
+  refreshStatsUI();
+}
+
+function submitGuess() {
+  if (!state || state.isOver) return;
+  const raw = guessInput.value.trim();
+  const numbers = raw.split('').map(c => c.trim()).filter(c => c !== '' && !isNaN(c));
+
+  if (numbers.length !== state.col) {
+    setMessage(`Please enter ${state.col} numbers you want to guess`, 'info');
+    return;
+  }
+
+  const isWin = playGuess(numbers);
+  guessInput.value = '';
+
+  if (isWin === null) {
+    setMessage(`Guess ${state.tryNumber}/${state.row} recorded. Keep going.`, 'info');
+  } else {
+    state.isOver = true;
+    guessInput.disabled = true;
+    submitBtn.disabled = true;
+    if (isWin) {
+      setMessage(`Congratulations you guessed the number ${state.answer} after ${state.tryNumber - 1} guesses and received ${state.rewardPoint} bonus points.`, 'win');
+    } else {
+      setMessage(`You lost, the correct number is ${state.answer}.`, 'loss');
+    }
+    recordResult(isWin, state.tryNumber - 1);
+  }
+}
+
+newGameBtn.addEventListener('click', newGame);
+submitBtn.addEventListener('click', submitGuess);
+guessInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitGuess();
+});
+guessInput.addEventListener('input', () => {
+  guessInput.value = guessInput.value.replace(/[^0-9]/g, '');
+});
+
+refreshStatsUI();
+newGame();
+</script>
+</body>
+</html>
