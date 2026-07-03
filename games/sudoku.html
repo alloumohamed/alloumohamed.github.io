@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -7,9 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <style>
-/* ============================= aluisuruncle RESET ============================= */
+/* ============================= RESET ============================= */
 *, *::before, *::after { box-sizing: border-box; }
 html, body { height: 100%; }
 body {
@@ -40,6 +40,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   --bg-0: #e7edf9;
   --bg-1: #f4f7fd;
   --surface: #ffffff;
+  --surface-rgb: 255,255,255;
   --surface-2: #f1f5fc;
   --ink: #1c2b47;
   --ink-soft: #5b6b8c;
@@ -59,6 +60,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   --bg-0: #0c1119;
   --bg-1: #131a26;
   --surface: #171f2d;
+  --surface-rgb: 23,31,45;
   --surface-2: #1e2839;
   --ink: #e7ecf7;
   --ink-soft: #9aa7c2;
@@ -78,6 +80,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   --bg-0: #ece1cd;
   --bg-1: #f3e9d7;
   --surface: #faf3e5;
+  --surface-rgb: 250,243,229;
   --surface-2: #f1e6d1;
   --ink: #4a3826;
   --ink-soft: #7d6a52;
@@ -147,12 +150,12 @@ ul { list-style: none; margin: 0; padding: 0; }
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 16px;
   box-shadow: var(--shadow);
   transition: transform var(--dur-fast) var(--ease), background var(--dur-med) var(--ease), border-color var(--dur-med) var(--ease);
 }
-.icon-btn svg, .tool-btn svg, .pause-btn svg, .close-btn svg, .resume-btn svg, .btn-primary svg {
-  display: block;
-  stroke: currentColor;
+.icon-btn i, .tool-btn i, .pause-btn i, .close-btn i, .resume-btn i, .btn-primary i {
+  color: inherit;
 }
 .icon-btn:hover { transform: translateY(-1px); }
 .icon-btn:active { transform: translateY(0) scale(.94); }
@@ -206,6 +209,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   width: 38px; height: 38px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
   transition: transform var(--dur-fast) var(--ease), background var(--dur-med) var(--ease);
 }
 .pause-btn:active { transform: scale(.9); }
@@ -345,7 +349,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   box-shadow: var(--shadow);
   transition: transform var(--dur-fast) var(--ease), color var(--dur-med) var(--ease), background var(--dur-med) var(--ease);
 }
-.tool-icon { display: flex; align-items: center; justify-content: center; }
+.tool-icon { display: flex; align-items: center; justify-content: center; font-size: 16px; }
 .tool-btn:active { transform: scale(.92); }
 .tool-btn.active { color: var(--accent); background: rgba(var(--accent-rgb), .12); }
 .tool-btn:disabled { opacity: .35; pointer-events: none; }
@@ -355,8 +359,8 @@ ul { list-style: none; margin: 0; padding: 0; }
   width: 100%;
   max-width: 480px;
   display: grid;
-  grid-template-columns: repeat(9, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
 }
 .num-btn {
   aspect-ratio: 1/1;
@@ -394,7 +398,9 @@ ul { list-style: none; margin: 0; padding: 0; }
   top: 0; right: 0;
   height: 100%;
   width: min(360px, 92vw);
-  background: var(--surface);
+  background: rgba(var(--surface-rgb), 0.8);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
   color: var(--ink);
   border-left: 1px solid var(--line);
   z-index: 21;
@@ -416,7 +422,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   background: var(--surface-2); border: 1px solid var(--line);
   width: 34px; height: 34px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
-  color: var(--ink-soft);
+  color: var(--ink-soft); font-size: 14px;
 }
 
 .settings-section { margin-bottom: 26px; }
@@ -629,15 +635,15 @@ input[type=range] {
   <span>Shuffling a fresh puzzle…</span>
 </div>
 
-<div class="app" data-theme="light" id="app">
+<div class="app" id="app">
   <div class="ambient-glow"></div>
 
   <header class="topbar">
-    <button class="icon-btn" id="backBtn" title="New game"><i data-lucide="chevron-left" width="20" height="20"></i></button>
+    <button class="icon-btn" id="backBtn" title="New game"><i class="fa-solid fa-chevron-left"></i></button>
     <h1 class="brand">Sudoku<span class="brand-dot">.</span>Studio</h1>
     <div class="topbar-actions">
-      <button class="icon-btn" id="paletteBtn" title="Cycle theme"><i data-lucide="palette" width="19" height="19"></i></button>
-      <button class="icon-btn" id="settingsBtn" title="Settings"><i data-lucide="settings" width="19" height="19"></i></button>
+      <button class="icon-btn" id="paletteBtn" title="Cycle theme"><i class="fa-solid fa-palette"></i></button>
+      <button class="icon-btn" id="settingsBtn" title="Settings"><i class="fa-solid fa-gear"></i></button>
     </div>
   </header>
 
@@ -659,23 +665,23 @@ input[type=range] {
       <span class="stat-value" id="statTime">00:00</span>
     </div>
     <button class="pause-btn" id="pauseBtn" title="Pause">
-      <i data-lucide="pause" width="15" height="15" class="icon-pause"></i>
-      <i data-lucide="play" width="15" height="15" class="icon-play" style="display:none"></i>
+      <i class="fa-solid fa-pause icon-pause"></i>
+      <i class="fa-solid fa-play icon-play" style="display:none"></i>
     </button>
   </div>
 
   <main class="board-wrap">
     <div class="board" id="board" role="grid" aria-label="Sudoku board"></div>
     <div class="pause-overlay" id="pauseOverlay">
-      <button class="resume-btn" id="resumeBtn"><i data-lucide="play" width="16" height="16"></i>Resume</button>
+      <button class="resume-btn" id="resumeBtn"><i class="fa-solid fa-play"></i>Resume</button>
     </div>
   </main>
 
   <div class="toolbar">
-    <button class="tool-btn" id="undoBtn"><i data-lucide="rotate-ccw" width="18" height="18" class="tool-icon"></i><span>Undo</span></button>
-    <button class="tool-btn" id="eraseBtn"><i data-lucide="eraser" width="18" height="18" class="tool-icon"></i><span>Erase</span></button>
-    <button class="tool-btn" id="notesBtn"><i data-lucide="pencil" width="18" height="18" class="tool-icon"></i><span>Notes</span></button>
-    <button class="tool-btn" id="hintBtn"><i data-lucide="lightbulb" width="18" height="18" class="tool-icon"></i><span>Hint</span></button>
+    <button class="tool-btn" id="undoBtn"><i class="fa-solid fa-rotate-left tool-icon"></i><span>Undo</span></button>
+    <button class="tool-btn" id="eraseBtn"><i class="fa-solid fa-eraser tool-icon"></i><span>Erase</span></button>
+    <button class="tool-btn" id="notesBtn"><i class="fa-solid fa-pencil tool-icon"></i><span>Notes</span></button>
+    <button class="tool-btn" id="hintBtn"><i class="fa-solid fa-lightbulb tool-icon"></i><span>Hint</span></button>
   </div>
 
   <div class="numpad" id="numpad"></div>
@@ -685,7 +691,7 @@ input[type=range] {
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-head">
     <h2>Settings</h2>
-    <button class="close-btn" id="closeSidebar"><i data-lucide="x" width="16" height="16"></i></button>
+    <button class="close-btn" id="closeSidebar"><i class="fa-solid fa-xmark"></i></button>
   </div>
 
   <div class="settings-section">
@@ -1424,7 +1430,7 @@ function hexToRgb(hex){
   return m.map(h=>parseInt(h,16)).join(',');
 }
 function applySettings(){
-  appEl.dataset.theme = settings.theme;
+  document.documentElement.dataset.theme = settings.theme;
   document.documentElement.style.setProperty('--accent', settings.accent);
   document.documentElement.style.setProperty('--accent-rgb', hexToRgb(settings.accent));
   document.documentElement.style.setProperty('--highlight-alpha', settings.intensity);
@@ -1573,7 +1579,6 @@ function init(){
   buildBoardDom();
   buildNumpad();
   wireEvents();
-  if (window.lucide) lucide.createIcons();
   applySettings();
   renderStatsUI();
   newGame(settings.difficulty || 'medium', showLoading);
