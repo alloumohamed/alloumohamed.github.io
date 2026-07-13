@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Interactive Rubik's Cube</title>
+<style>
+  :root{
+    --size: 30px;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    height:100%; margin:0;
+    background: radial-gradient(ellipse at center, #1c1f26 0%, #0a0c10 100%);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    overflow:hidden;
+  }
+  .stage{
+    position:fixed; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:16px;
+  }
+  .viewport{
+    width:280px; height:280px;
+    perspective:900px;
+    touch-action:none;
+    cursor:grab;
+    user-select:none;
+  }
+  .viewport.dragging{ cursor:grabbing; }
+  .float{
+    width:100%; height:100%;
+    transform-style:preserve-3d;
+    animation: floatBob 4.2s ease-in-out infinite;
+  }
+  @keyframes floatBob{
+    0%,100%{ transform: translateY(0px); }
+    50%{ transform: translateY(-12px); }
+  }
+  .orbit{ width:100%; height:100%; transform-style:preserve-3d; will-change:transform; }
+  .cube{ width:100%; height:100%; position:relative; transform-style:preserve-3d; }
+  .cubie{
+    position:absolute; top:50%; left:50%;
+    width:var(--size); height:var(--size);
+    margin:calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
+    transform-style:preserve-3d;
+  }
+  .face{
+    position:absolute;
+    width:var(--size); height:var(--size);
+    border-radius:3px;
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,0.35);
+    backface-visibility:hidden;
+  }
+  .f-right{ background:#c41e1e; }
+  .f-left{ background:#e07b00; }
+  .f-up{ background:#f2f2f2; }
+  .f-down{ background:#f4d000; }
+  .f-front{ background:#2fa63c; }
+  .f-back{ background:#2255c4; }
+
+  .hint{
+    color:#5b6270;
+    font-size:12px;
+    letter-spacing:0.3px;
+    text-align:center;
+  }
+
+  /* ---------- sidebar toggle ---------- */
+  .gear-btn{
+    position:fixed; top:20px; right:20px; z-index:30;
+    width:44px; height:44px; border-radius:50%;
+    background:#1c2028; border:1px solid #2e333e;
+    color:#e8eaef; font-size:19px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    transition: background .15s ease, transform .3s ease;
+  }
+  .gear-btn:hover{ background:#262b35; }
+  .gear-btn.open{ transform: rotate(90deg); }
+
+  .backdrop{
+    position:fixed; inset:0; z-index:25;
+    background: rgba(0,0,0,0.45);
+    opacity:0; pointer-events:none;
+    transition: opacity .3s ease;
+  }
+  .backdrop.show{ opacity:1; pointer-events:auto; }
+
+  /* ---------- sidebar ---------- */
+  .sidebar{
+    position:fixed; top:0; right:0; height:100%;
+    width:min(86vw, 320px);
+    background:#14161c;
+    border-left:1px solid #23262f;
+    box-shadow:-18px 0 40px rgba(0,0,0,0.35);
+    z-index:26;
+    transform: translateX(100%);
+    transition: transform .35s cubic-bezier(.4,.0,.2,1);
+    padding:26px 22px;
+    overflow-y:auto;
+    display:flex; flex-direction:column; gap:22px;
+  }
+  .sidebar.open{ transform: translateX(0); }
+
+  .sidebar h2{
+    color:#e8eaef; font-size:16px; margin:0 0 4px 0;
+    letter-spacing:0.3px;
+  }
+  .field-label{
+    color:#9aa1ad; font-size:12px; letter-spacing:0.4px;
+    display:flex; justify-content:space-between;
+  }
+  input#moves{
+    width:100%;
+    background:#1d2129;
+    border:1px solid #2b2f3a;
+    color:#e8eaef;
+    padding:10px 12px;
+    border-radius:8px;
+    font-size:14px;
+    letter-spacing:0.4px;
+    outline:none;
+  }
+  input#moves:focus{ border-color:#4d7cff; }
+
+  .row{ display:flex; gap:8px; }
+  button{
+    background:#22262f;
+    border:1px solid #333844;
+    color:#e8eaef;
+    padding:10px 12px;
+    border-radius:8px;
+    font-size:13px;
+    cursor:pointer;
+    flex:1;
+    transition: background .15s ease, transform .1s ease;
+  }
+  button:hover{ background:#2c313d; }
+  button:active{ transform: scale(0.96); }
+  button.primary{ background:#3a5ef0; border-color:#3a5ef0; }
+  button.primary:hover{ background:#4a6bf5; }
+  button:disabled{ opacity:0.45; cursor:not-allowed; }
+
+  input[type=range]{
+    width:100%; accent-color:#4d7cff;
+  }
+
+  .status{
+    color:#9aa1ad;
+    font-size:12.5px;
+    line-height:1.5;
+    min-height:34px;
+  }
+  .example{
+    color:#5b6270; font-size:11.5px; line-height:1.6;
+  }
+  .example code{
+    background:#1d2129; padding:1px 5px; border-radius:4px; color:#b9c2d0;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="viewport" id="viewport">
+    <div class="float">
+      <div class="orbit" id="orbit">
+        <div class="cube" id="cube"></div>
+      </div>
+    </div>
+  </div>
+  <div class="hint">Drag to rotate &middot; scroll to zoom</div>
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+<button class="gear-btn" id="gearBtn" title="Options">⚙</button>
+
+<div class="sidebar" id="sidebar">
+  <div>
+    <h2>Moves</h2>
+    <div class="field-label"><span>Notation</span></div>
+    <input id="moves" type="text" placeholder="R U R' U'  or  R U ×120" autocomplete="off" />
+  </div>
+
+  <div class="row">
+    <button class="primary" id="run">Run</button>
+    <button id="scramble">Scramble</button>
+    <button id="reset">Reset</button>
+  </div>
+
+  <div>
+    <div class="field-label"><span>Speed</span><span id="speedLabel">1.0×</span></div>
+    <input id="speed" type="range" min="0.25" max="6" step="0.25" value="1" />
+  </div>
+
+  <div class="status" id="status">Drag the cube, or type a sequence and hit Run.</div>
+
+  <div class="example">
+    U D L R F B are faces &middot; <code>'</code> = counter-clockwise &middot; <code>2</code> = half turn<br/>
+    Repeat with <code>×</code>, <code>x</code> or <code>*</code>: <code>R U × 120</code><br/>
+    Group repeats too: <code>(R U F')×15 D</code>
+  </div>
+</div>
+
+<script>
+(function(){
+  const S = 32;
+  const half = 15;
+  const cube = document.getElementById('cube');
+  let cubies = [];
+
+  // ---------- build the 27 cubies ----------
+  function buildCube(){
+    cube.innerHTML = '';
+    cubies = [];
+    for(let x=-1;x<=1;x++){
+      for(let y=-1;y<=1;y++){
+        for(let z=-1;z<=1;z++){
+          const el = document.createElement('div');
+          el.className = 'cubie';
+          el.dataset.x = x; el.dataset.y = y; el.dataset.z = z;
+
+          el._matrix = new DOMMatrix().translate(x*S, y*S, z*S);
+          el.style.transform = el._matrix.toString();
+
+          if(z === 1)  addFace(el, 'f-front', `translateZ(${half}px)`);
+          if(z === -1) addFace(el, 'f-back',  `rotateY(180deg) translateZ(${half}px)`);
+          if(x === 1)  addFace(el, 'f-right', `rotateY(90deg) translateZ(${half}px)`);
+          if(x === -1) addFace(el, 'f-left',  `rotateY(-90deg) translateZ(${half}px)`);
+          if(y === -1) addFace(el, 'f-up',    `rotateX(90deg) translateZ(${half}px)`);
+          if(y === 1)  addFace(el, 'f-down',  `rotateX(-90deg) translateZ(${half}px)`);
+
+          cube.appendChild(el);
+          cubies.push(el);
+        }
+      }
+    }
+  }
+  function addFace(parent, cls, transform){
+    const f = document.createElement('div');
+    f.className = 'face ' + cls;
+    f.style.transform = transform;
+    parent.appendChild(f);
+  }
+  buildCube();
+
+  // ---------- orbit view: drag to rotate, scroll to zoom ----------
+  const viewport = document.getElementById('viewport');
+  const orbit = document.getElementById('orbit');
+  let rotX = -20, rotY = -35, zoom = 1;
+  let dragging = false, lastX = 0, lastY = 0;
+
+  function applyView(){
+    orbit.style.transform = `scale(${zoom}) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+  }
+  applyView();
+
+  viewport.addEventListener('pointerdown', e => {
+    dragging = true;
+    lastX = e.clientX; lastY = e.clientY;
+    viewport.classList.add('dragging');
+    viewport.setPointerCapture(e.pointerId);
+  });
+  viewport.addEventListener('pointermove', e => {
+    if(!dragging) return;
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    rotY += dx * 0.4;
+    rotX -= dy * 0.4;
+    applyView();
+  });
+  function endDrag(){ dragging = false; viewport.classList.remove('dragging'); }
+  viewport.addEventListener('pointerup', endDrag);
+  viewport.addEventListener('pointercancel', endDrag);
+  viewport.addEventListener('pointerleave', endDrag);
+
+  viewport.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = e.deltaY > 0 ? 0.9 : 1.1;
+    zoom = Math.min(2.4, Math.max(0.5, zoom * factor));
+    applyView();
+  }, { passive:false });
+
+  // ---------- move engine ----------
+  function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+  function easeInOutQuad(t){ return t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2; }
+
+  function updateCoordsForAxis(el, axisName, sign){
+    let x = +el.dataset.x, y = +el.dataset.y, z = +el.dataset.z;
+    if(axisName === 'x'){
+      const a = y, b = z;
+      if(sign > 0){ y = -b; z = a; } else { y = b; z = -a; }
+    } else if(axisName === 'y'){
+      const a = z, b = x;
+      if(sign > 0){ z = -b; x = a; } else { z = b; x = -a; }
+    } else {
+      const a = x, b = y;
+      if(sign > 0){ x = -b; y = a; } else { x = b; y = -a; }
+    }
+    el.dataset.x = x; el.dataset.y = y; el.dataset.z = z;
+  }
+
+  function rotateMembers(axisVec, members, angle, duration){
+    const starts = members.map(el => DOMMatrix.fromMatrix(el._matrix));
+    return new Promise(resolve => {
+      const t0 = performance.now();
+      function frame(now){
+        const t = Math.min(1, (now - t0) / duration);
+        const eased = easeInOutQuad(t);
+        const rot = new DOMMatrix().rotateAxisAngle(axisVec[0], axisVec[1], axisVec[2], angle * eased);
+        members.forEach((el, i) => {
+          const m = rot.multiply(starts[i]);
+          el.style.transform = m.toString();
+          if(t >= 1) el._matrix = m;
+        });
+        if(t < 1) requestAnimationFrame(frame);
+        else resolve();
+      }
+      requestAnimationFrame(frame);
+    });
+  }
+
+  const FACE_CONFIG = {
+    R: { axis:[1,0,0], axisName:'x', filter: el => +el.dataset.x === 1,  own: 1 },
+    L: { axis:[1,0,0], axisName:'x', filter: el => +el.dataset.x === -1, own: -1 },
+    D: { axis:[0,1,0], axisName:'y', filter: el => +el.dataset.y === 1,  own: 1 },
+    U: { axis:[0,1,0], axisName:'y', filter: el => +el.dataset.y === -1, own: -1 },
+    F: { axis:[0,0,1], axisName:'z', filter: el => +el.dataset.z === 1,  own: 1 },
+    B: { axis:[0,0,1], axisName:'z', filter: el => +el.dataset.z === -1, own: -1 },
+  };
+
+  const BASE_QUARTER_MS = 260;
+  const BASE_HALF_MS = 340;
+  const BASE_PAUSE_MS = 60;
+  let speed = 1;
+
+  async function doMove(face, mod){
+    const cfg = FACE_CONFIG[face];
+    if(!cfg) return;
+    const members = cubies.filter(cfg.filter);
+
+    let globalQuarters;
+    if(mod === '2') globalQuarters = 2 * cfg.own;
+    else if(mod === "'") globalQuarters = -cfg.own;
+    else globalQuarters = cfg.own;
+
+    const angle = globalQuarters * 90;
+    const baseDuration = (mod === '2') ? BASE_HALF_MS : BASE_QUARTER_MS;
+    const duration = Math.max(16, baseDuration / speed);
+
+    await rotateMembers(cfg.axis, members, angle, duration);
+
+    const turns = Math.abs(globalQuarters);
+    const sign = Math.sign(globalQuarters);
+    for(let i=0;i<turns;i++){
+      members.forEach(el => updateCoordsForAxis(el, cfg.axisName, sign));
+    }
+    await sleep(Math.max(4, BASE_PAUSE_MS / speed));
+  }
+
+  // ---------- notation parsing: moves, ' and 2 modifiers, ( ) grouping, ×/x/* N repeat ----------
+  function tokenize(str){
+    const clean = str.replace(/[’‘`]/g, "'");
+    const re = /\(|\)|[×x\*]\s*\d+|[UDLRFBudlrfb](?:2|')?/g;
+    const tokens = [];
+    let m, consumedLength = 0;
+    while((m = re.exec(clean)) !== null){ tokens.push(m[0]); consumedLength += m[0].length; }
+    const leftover = clean.replace(re, '').trim();
+    return { tokens, leftover };
+  }
+
+  function parseTokens(tokens){
+    let i = 0;
+    function parseSeq(){
+      let seq = [];
+      while(i < tokens.length && tokens[i] !== ')'){
+        const tok = tokens[i];
+        if(tok === '('){
+          i++;
+          const group = parseSeq();
+          if(tokens[i] === ')') i++;
+          let count = 1;
+          if(i < tokens.length && /^[×x\*]/i.test(tokens[i])){
+            count = parseInt(tokens[i].replace(/[×x\*\s]/gi, ''), 10) || 1;
+            i++;
+          }
+          for(let k=0;k<count;k++) seq.push(...group);
+        } else if(/^[×x\*]/i.test(tok)){
+          const count = parseInt(tok.replace(/[×x\*\s]/gi, ''), 10) || 1;
+          i++;
+          const base = seq.slice();
+          const repeated = [];
+          for(let k=0;k<count;k++) repeated.push(...base);
+          seq = repeated;
+        } else {
+          const m = tok.match(/^([UDLRFBudlrfb])(2|')?$/);
+          if(m) seq.push({ face: m[1].toUpperCase(), mod: m[2] });
+          i++;
+        }
+      }
+      return seq;
+    }
+    return parseSeq();
+  }
+
+  function parseMoves(str){
+    const { tokens, leftover } = tokenize(str);
+    const moves = parseTokens(tokens);
+    return { moves, leftover };
+  }
+
+  // ---------- UI wiring ----------
+  const input = document.getElementById('moves');
+  const runBtn = document.getElementById('run');
+  const scrambleBtn = document.getElementById('scramble');
+  const resetBtn = document.getElementById('reset');
+  const status = document.getElementById('status');
+  const speedSlider = document.getElementById('speed');
+  const speedLabel = document.getElementById('speedLabel');
+
+  speedSlider.addEventListener('input', () => {
+    speed = parseFloat(speedSlider.value);
+    speedLabel.textContent = speed.toFixed(2).replace(/0$/,'').replace(/\.$/,'.0') + '×';
+  });
+
+  let running = false;
+
+  async function runSequence(str){
+    if(running) return;
+    const { moves, leftover } = parseMoves(str);
+    if(moves.length === 0){
+      status.textContent = leftover ? `No valid moves found near "${leftover}"` : 'Type some moves first';
+      return;
+    }
+    running = true;
+    runBtn.disabled = true; scrambleBtn.disabled = true; resetBtn.disabled = true;
+    for(let i=0;i<moves.length;i++){
+      const mv = moves[i];
+      status.textContent = `Running ${mv.face}${mv.mod || ''} — move ${i+1} of ${moves.length}`;
+      await doMove(mv.face, mv.mod);
+    }
+    status.textContent = leftover
+      ? `Done (${moves.length} moves). Ignored: "${leftover}"`
+      : `Done — played ${moves.length} moves.`;
+    running = false;
+    runBtn.disabled = false; scrambleBtn.disabled = false; resetBtn.disabled = false;
+  }
+
+  runBtn.addEventListener('click', () => runSequence(input.value));
+  input.addEventListener('keydown', e => {
+    if(e.key === 'Enter') runSequence(input.value);
+  });
+
+  scrambleBtn.addEventListener('click', () => {
+    const faces = ['U','D','L','R','F','B'];
+    const mods = ['', "'", '2'];
+    const seq = [];
+    let last = '';
+    for(let i=0;i<18;i++){
+      let f;
+      do{ f = faces[Math.floor(Math.random()*faces.length)]; } while(f === last);
+      last = f;
+      const mod = mods[Math.floor(Math.random()*mods.length)];
+      seq.push(f + mod);
+    }
+    input.value = seq.join(' ');
+    runSequence(input.value);
+  });
+
+  resetBtn.addEventListener('click', () => {
+    if(running) return;
+    buildCube();
+    status.textContent = 'Reset to solved.';
+    input.value = '';
+  });
+
+  // ---------- sidebar toggle ----------
+  const sidebar = document.getElementById('sidebar');
+  const gearBtn = document.getElementById('gearBtn');
+  const backdrop = document.getElementById('backdrop');
+
+  function setSidebar(open){
+    sidebar.classList.toggle('open', open);
+    gearBtn.classList.toggle('open', open);
+    backdrop.classList.toggle('show', open);
+  }
+  gearBtn.addEventListener('click', () => setSidebar(!sidebar.classList.contains('open')));
+  backdrop.addEventListener('click', () => setSidebar(false));
+})();
+</script>
+
+</body>
+</html>
