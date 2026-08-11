@@ -1,771 +1,753 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Permutation Generator</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Dotgen — Email Permutation Generator</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
-        :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f8f9fa;
-            --bg-card: #ffffff;
-            --bg-input: #f5f5f5;
-            --bg-button: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --bg-button-hover: linear-gradient(135deg, #5568d3 0%, #63408a 100%);
-            --text-primary: #1a1a1a;
-            --text-secondary: #6b7280;
-            --text-button: #ffffff;
-            --border-color: #e5e7eb;
-            --shadow: rgba(0, 0, 0, 0.1);
-            --accent: #667eea;
-            --accent-light: #818cf8;
-            --error-bg: #fee;
-            --error-border: #fcc;
-            --error-text: #c33;
-            --success: #10b981;
-            --hover-bg: #f3f4f6;
-            --gradient-overlay: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-        }
+  :root{
+    --bg:        #F6F5F1;
+    --bg-raise:  #FFFFFF;
+    --bg-sunken: #ECEBE5;
+    --ink:       #14161A;
+    --ink-dim:   #63676F;
+    --ink-faint: #9A9EA5;
+    --line:      #DEDCD3;
+    --accent:    #0E8F7E;
+    --accent-ink:#FFFFFF;
+    --accent-soft: #E3F3F0;
+    --warn:      #B3401F;
+    --warn-soft: #FBEAE4;
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --mono: 'SF Mono', 'JetBrains Mono', 'Roboto Mono', ui-monospace, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    color-scheme: light;
+  }
 
-        [data-theme="dark"] {
-            --bg-primary: #0f0f0f;
-            --bg-secondary: #1a1a1a;
-            --bg-card: #1e1e1e;
-            --bg-input: #2a2a2a;
-            --bg-button: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --bg-button-hover: linear-gradient(135deg, #7e94ff 0%, #8e5cb8 100%);
-            --text-primary: #f5f5f5;
-            --text-secondary: #a0a0a0;
-            --text-button: #ffffff;
-            --border-color: #333333;
-            --shadow: rgba(0, 0, 0, 0.4);
-            --accent: #818cf8;
-            --accent-light: #a5b4fc;
-            --error-bg: #3a1515;
-            --error-border: #5a2020;
-            --error-text: #ff6b6b;
-            --success: #34d399;
-            --hover-bg: #2a2a2a;
-            --gradient-overlay: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-        }
+  [data-theme="dark"]{
+    --bg:        #0B0D0F;
+    --bg-raise:  #15181C;
+    --bg-sunken: #101215;
+    --ink:       #EDEEF0;
+    --ink-dim:   #9BA0A8;
+    --ink-faint: #5C6169;
+    --line:      #24282E;
+    --accent:    #2FD9B9;
+    --accent-ink:#06110F;
+    --accent-soft: #10302B;
+    --warn:      #FF8A65;
+    --warn-soft: #2E1811;
+    color-scheme: dark;
+  }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            transition: background 0.3s ease, color 0.3s ease;
-            position: relative;
-            overflow-x: hidden;
-        }
+  html,body{ height:100%; }
+  body{
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  }
 
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--gradient-overlay);
-            pointer-events: none;
-            z-index: 0;
-        }
+  /* ---------- Top bar ---------- */
+  .topbar{
+    position: sticky; top:0; z-index:40;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 14px 18px;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand-mark{
+    width:30px; height:30px; border-radius:8px;
+    background: var(--ink);
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--mono); font-weight:700; font-size:13px;
+    color: var(--bg);
+    flex-shrink:0;
+  }
+  .brand-text{ font-weight:700; font-size:15px; letter-spacing:-0.2px; }
+  .brand-text sub{ display:block; font-size:10px; font-weight:500; color:var(--ink-dim); letter-spacing:0.4px; text-transform:uppercase; }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-            position: relative;
-            z-index: 1;
-        }
+  .seg{
+    display:flex; background:var(--bg-sunken); border-radius:999px; padding:3px; border:1px solid var(--line);
+  }
+  .seg button{
+    border:none; background:transparent; width:32px; height:28px; border-radius:999px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink-dim);
+    transition: background .2s ease, color .2s ease;
+  }
+  .seg button.active{ background:var(--bg-raise); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.08); }
+  .seg svg{ width:15px; height:15px; }
 
-        .header {
-            text-align: center;
-            margin-bottom: 3rem;
-            animation: fadeInDown 0.6s ease-out;
-        }
+  /* ---------- Layout ---------- */
+  .wrap{ max-width: 640px; margin:0 auto; padding: 0 16px; }
 
-        .theme-toggle {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            z-index: 1000;
-            background: var(--bg-card);
-            border: 2px solid var(--border-color);
-            padding: 0.75rem;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px var(--shadow);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 50px;
-            height: 50px;
-        }
+  .hero{ padding: 28px 16px 6px; max-width:640px; margin:0 auto; }
+  .hero h1{
+    font-size: clamp(1.5rem, 6vw, 2rem);
+    font-weight:800; letter-spacing:-0.03em; line-height:1.08;
+  }
+  .hero p{ color:var(--ink-dim); margin-top:8px; font-size:14.5px; line-height:1.5; max-width:46ch; }
 
-        .theme-toggle:hover {
-            transform: scale(1.1) rotate(15deg);
-            box-shadow: 0 6px 20px var(--shadow);
-        }
+  /* ---------- Mode tabs ---------- */
+  .tabs{
+    display:flex; gap:6px; margin: 18px 0 14px; overflow-x:auto; scrollbar-width:none;
+    padding-bottom:2px;
+  }
+  .tabs::-webkit-scrollbar{ display:none; }
+  .tab{
+    flex-shrink:0; font-family: var(--mono); font-size:12.5px; font-weight:600;
+    padding: 8px 13px; border-radius:999px; border:1px solid var(--line);
+    background:var(--bg-raise); color:var(--ink-dim); cursor:pointer;
+    transition: all .18s ease;
+    white-space:nowrap;
+  }
+  .tab.active{ background:var(--ink); color:var(--bg); border-color:var(--ink); }
 
-        .icon-logo {
-            width: 80px;
-            height: 80px;
-            background: var(--bg-button);
-            border-radius: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            box-shadow: 0 10px 30px var(--shadow);
-            animation: float 3s ease-in-out infinite;
-        }
+  /* ---------- Card ---------- */
+  .card{
+    background: var(--bg-raise);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    margin-bottom: 16px;
+  }
 
-        .icon-logo svg {
-            width: 40px;
-            height: 40px;
-            stroke: white;
-            fill: none;
-            stroke-width: 2;
-        }
+  .field{ margin-bottom:14px; }
+  .field:last-child{ margin-bottom:0; }
+  .field label{
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;
+    color: var(--ink-dim); margin-bottom:7px;
+  }
+  .field label .hint{ text-transform:none; font-weight:500; font-size:11.5px; color:var(--ink-faint); letter-spacing:0; }
 
-        h1 {
-            font-size: 3rem;
-            background: var(--bg-button);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 1rem;
-            font-weight: 800;
-            letter-spacing: -1px;
-        }
+  input[type="text"]{
+    width:100%; font-family: var(--mono); font-size:15px;
+    padding: 13px 14px; border-radius: var(--radius-md);
+    border: 1.5px solid var(--line); background: var(--bg-sunken); color:var(--ink);
+    outline:none; transition: border-color .15s ease, background .15s ease;
+  }
+  input[type="text"]::placeholder{ color: var(--ink-faint); }
+  input[type="text"]:focus{ border-color: var(--accent); background:var(--bg-raise); }
+  textarea{
+    width:100%; font-family: var(--mono); font-size:14px; line-height:1.6;
+    padding: 13px 14px; border-radius: var(--radius-md); resize:vertical; min-height:84px;
+    border: 1.5px solid var(--line); background: var(--bg-sunken); color:var(--ink); outline:none;
+  }
+  textarea:focus{ border-color:var(--accent); background:var(--bg-raise); }
 
-        .subtitle {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
+  .row2{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
 
-        .card {
-            background: var(--bg-card);
-            border-radius: 24px;
-            padding: 2.5rem;
-            box-shadow: 0 8px 30px var(--shadow);
-            border: 1px solid var(--border-color);
-            margin-bottom: 2rem;
-            animation: fadeInUp 0.6s ease-out;
-            transition: all 0.3s ease;
-        }
+  /* toggle row */
+  .opt-grid{ display:flex; flex-direction:column; gap:2px; }
+  .opt{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 11px 2px; border-bottom:1px solid var(--line);
+    cursor:pointer;
+  }
+  .opt:last-child{ border-bottom:none; }
+  .opt-label{ font-size:14px; font-weight:600; }
+  .opt-desc{ font-size:12px; color:var(--ink-dim); margin-top:1px; }
+  .switch{
+    width:42px; height:25px; border-radius:999px; background:var(--bg-sunken);
+    border:1.5px solid var(--line); position:relative; flex-shrink:0; transition: background .2s;
+  }
+  .switch::after{
+    content:''; position:absolute; top:2px; left:2px; width:19px; height:19px; border-radius:50%;
+    background:var(--ink-faint); transition: transform .2s ease, background .2s ease;
+  }
+  .switch.on{ background:var(--accent-soft); border-color:var(--accent); }
+  .switch.on::after{ transform:translateX(17px); background:var(--accent); }
 
-        .card:hover {
-            box-shadow: 0 12px 40px var(--shadow);
-            transform: translateY(-2px);
-        }
+  /* domain chips (typo/catch-all mode) */
+  .chip-list{ display:flex; flex-wrap:wrap; gap:7px; margin-top:8px; }
+  .chip{
+    font-family: var(--mono); font-size:12.5px; padding:6px 10px; border-radius:8px;
+    background:var(--bg-sunken); border:1px solid var(--line); color:var(--ink-dim);
+  }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
+  /* ---------- Generate button ---------- */
+  .btn-primary{
+    width:100%; padding:15px; border:none; border-radius: var(--radius-md);
+    background: var(--ink); color: var(--bg);
+    font-size:15px; font-weight:700; letter-spacing:0.2px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    transition: transform .12s ease, opacity .12s ease;
+  }
+  .btn-primary:active{ transform: scale(0.98); }
+  .btn-primary svg{ width:17px; height:17px; }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
+  .error{
+    display:none; align-items:flex-start; gap:9px;
+    background: var(--warn-soft); border:1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+    color: var(--warn); padding:12px 13px; border-radius: var(--radius-md); margin-top:12px;
+    font-size:13.5px; line-height:1.4;
+  }
+  .error.show{ display:flex; }
+  .error svg{ flex-shrink:0; margin-top:1px; width:16px; height:16px; }
 
-        label {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+  /* ---------- Results ---------- */
+  .results{ display:none; }
+  .results.show{ display:block; }
 
-        input[type="text"] {
-            padding: 1rem;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            font-size: 1rem;
-            background: var(--bg-input);
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-            outline: none;
-        }
+  .stats-row{
+    display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-bottom:16px;
+  }
+  .stat{
+    background:var(--bg-raise); border:1px solid var(--line); border-radius:var(--radius-md);
+    padding:12px 10px; text-align:center;
+  }
+  .stat b{ display:block; font-family:var(--mono); font-size:20px; font-weight:700; font-variant-numeric: tabular-nums; }
+  .stat span{ font-size:10.5px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.4px; }
 
-        input[type="text"]:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-            transform: translateY(-1px);
-        }
+  .results-header{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:10px;
+  }
+  .results-title{ font-size:14px; font-weight:700; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.4px; }
 
-        .checkbox-group {
-            display: flex;
-            gap: 2rem;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-        }
+  .toolrow{ display:flex; gap:8px; margin-bottom:12px; overflow-x:auto; scrollbar-width:none; }
+  .toolrow::-webkit-scrollbar{ display:none; }
+  .btn-sm{
+    flex-shrink:0; font-family: var(--sans); font-size:12.5px; font-weight:600;
+    padding:8px 12px; border-radius:9px; border:1px solid var(--line);
+    background:var(--bg-raise); color:var(--ink); cursor:pointer; display:flex; align-items:center; gap:6px;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .btn-sm:active{ background:var(--bg-sunken); }
+  .btn-sm.accent{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .btn-sm svg{ width:14px; height:14px; }
 
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            cursor: pointer;
-            user-select: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
+  .search-box{ position:relative; margin-bottom:10px; }
+  .search-box input{ padding-left:36px; }
+  .search-box svg{
+    position:absolute; left:12px; top:50%; transform:translateY(-50%);
+    width:16px; height:16px; color:var(--ink-faint); pointer-events:none;
+  }
 
-        .checkbox-label:hover {
-            color: var(--accent);
-        }
+  .email-list{ display:flex; flex-direction:column; gap:6px; }
+  .email-item{
+    background: var(--bg-raise); border:1px solid var(--line); border-radius: var(--radius-md);
+    padding: 11px 12px; display:flex; align-items:center; gap:10px;
+    animation: rise .35s ease-out both;
+  }
+  .dotmask{
+    display:flex; gap:1.5px; flex-shrink:0; padding:2px 0;
+  }
+  .dotmask i{
+    width:4px; height:4px; border-radius:50%; background:var(--line); display:block;
+  }
+  .dotmask i.on{ background:var(--accent); }
 
-        input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            accent-color: var(--accent);
-        }
+  .email-main{ flex:1; min-width:0; }
+  .email-text{
+    font-family: var(--mono); font-size:13.5px; color:var(--ink); word-break:break-all; display:block;
+  }
+  .email-badges{ display:flex; gap:5px; margin-top:3px; }
+  .badge{
+    font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.3px;
+    padding:2px 6px; border-radius:5px; background:var(--bg-sunken); color:var(--ink-faint);
+  }
 
-        .btn-primary {
-            background: var(--bg-button);
-            color: var(--text-button);
-            border: none;
-            padding: 1.25rem 2rem;
-            font-size: 1.1rem;
-            font-weight: 700;
-            border-radius: 12px;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
+  .btn-copy{
+    background:transparent; border:none; cursor:pointer; padding:8px; border-radius:8px;
+    color:var(--ink-faint); display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    transition: background .15s ease, color .15s ease;
+  }
+  .btn-copy:active{ background:var(--bg-sunken); }
+  .btn-copy.copied{ color:var(--accent); }
+  .btn-copy svg{ width:17px; height:17px; }
 
-        .btn-primary:hover {
-            background: var(--bg-button-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
-        }
+  .empty-search{ text-align:center; padding:30px 10px; color:var(--ink-dim); font-size:13.5px; }
 
-        .btn-primary:active {
-            transform: translateY(0);
-        }
+  @keyframes rise{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:translateY(0);} }
 
-        .error {
-            background: var(--error-bg);
-            border: 2px solid var(--error-border);
-            color: var(--error-text);
-            padding: 1rem;
-            border-radius: 12px;
-            margin-top: 1rem;
-            display: none;
-            align-items: center;
-            gap: 0.75rem;
-            animation: shake 0.5s ease;
-        }
+  /* ---------- Sticky bottom bar (mobile) ---------- */
+  .bottombar{
+    position: fixed; left:0; right:0; bottom:0; z-index:50;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    backdrop-filter: blur(10px);
+    border-top:1px solid var(--line);
+    display:none;
+  }
+  .bottombar.show{ display:block; }
+  .bottombar-inner{ max-width:640px; margin:0 auto; display:flex; gap:8px; }
+  .bottombar .btn-sm{ flex:1; justify-content:center; padding:12px; }
+  .bottombar .btn-sm.accent{ flex:1.4; }
 
-        .error.show {
-            display: flex;
-        }
+  footer{ text-align:center; padding: 26px 16px 10px; color:var(--ink-faint); font-size:11.5px; }
+  footer a{ color:var(--ink-dim); }
 
-        .results {
-            display: none;
-        }
+  @media (min-width: 640px){
+    .row2.threecol{ grid-template-columns: 1fr 1fr 1fr; }
+  }
 
-        .results.show {
-            display: block;
-        }
-
-        .results-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .results-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .count-badge {
-            background: var(--accent);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-left: 1rem;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        .btn-copy-all {
-            background: var(--bg-input);
-            color: var(--text-primary);
-            border: 2px solid var(--border-color);
-            padding: 0.75rem 1.5rem;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .btn-copy-all:hover {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-            transform: translateY(-2px);
-        }
-
-        .email-list {
-            max-height: 500px;
-            overflow-y: auto;
-            display: grid;
-            gap: 0.75rem;
-            padding-right: 0.5rem;
-        }
-
-        .email-list::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .email-list::-webkit-scrollbar-track {
-            background: var(--bg-input);
-            border-radius: 10px;
-        }
-
-        .email-list::-webkit-scrollbar-thumb {
-            background: var(--accent);
-            border-radius: 10px;
-        }
-
-        .email-item {
-            background: var(--bg-input);
-            padding: 1rem 1.25rem;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-            animation: slideIn 0.4s ease-out forwards;
-            opacity: 0;
-        }
-
-        .email-item:hover {
-            background: var(--hover-bg);
-            border-color: var(--accent);
-            transform: translateX(5px);
-        }
-
-        .email-text {
-            font-family: 'Courier New', monospace;
-            font-size: 1rem;
-            color: var(--text-primary);
-            word-break: break-all;
-        }
-
-        .btn-copy {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-        }
-
-        .btn-copy:hover {
-            background: var(--accent);
-            color: white;
-            transform: scale(1.1);
-        }
-
-        .btn-copy.copied {
-            color: var(--success);
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideIn {
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2rem;
-            }
-            
-            .card {
-                padding: 1.5rem;
-            }
-            
-            .theme-toggle {
-                top: 1rem;
-                right: 1rem;
-            }
-            
-            .results-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-        }
-    </style>
+  ::selection{ background: var(--accent-soft); }
+</style>
 </head>
 <body>
-    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-        <svg id="sunIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="5"></circle>
-            <line x1="12" y1="1" x2="12" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="23"></line>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-            <line x1="1" y1="12" x2="3" y2="12"></line>
-            <line x1="21" y1="12" x2="23" y2="12"></line>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-        </svg>
-        <svg id="moonIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-        </svg>
-    </button>
 
-    <div class="container">
-        <div class="header">
-            <div class="icon-logo">
-                <svg viewBox="0 0 24 24">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                    <polyline points="22,6 12,13 2,6"></polyline>
-                </svg>
-            </div>
-            <h1>Email Permutation Generator</h1>
-            <p class="subtitle">Generate all possible email variations with dot placements for any username</p>
-        </div>
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">@.</div>
+      <div class="brand-text">Dotgen<sub>Email Permutations</sub></div>
+    </div>
+    <div class="seg" role="group" aria-label="Theme">
+      <button id="lightBtn" class="active" aria-label="Light theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <button id="darkBtn" aria-label="Dark theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
 
-        <div class="card">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" placeholder="johndoe" />
-                </div>
-                <div class="form-group">
-                    <label for="domain">Domain</label>
-                    <input type="text" id="domain" value="example.com" />
-                </div>
-            </div>
+  <div class="hero">
+    <h1>Every valid dot placement,<br>generated instantly.</h1>
+    <p>Gmail ignores dots in the local part of an address — so <code style="font-family:var(--mono)">j.doe@gmail.com</code> and <code style="font-family:var(--mono)">jo.de@gmail.com</code> reach the same inbox. Generate the full set, plus catch-all and plus-tag variants.</p>
+  </div>
 
-            <div class="checkbox-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="lowercase" checked />
-                    <span>Convert to lowercase</span>
-                </label>
-                <label class="checkbox-label">
-                    <input type="checkbox" id="sanitize" checked />
-                    <span>Sanitize username</span>
-                </label>
-            </div>
+  <div class="wrap">
 
-            <button class="btn-primary" id="generateBtn">Generate Emails</button>
-
-            <div class="error" id="error">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                <span id="errorText"></span>
-            </div>
-        </div>
-
-        <div class="card results" id="results">
-            <div class="results-header">
-                <div>
-                    <span class="results-title">Generated Emails</span>
-                    <span class="count-badge" id="countBadge">0 variations</span>
-                </div>
-                <button class="btn-copy-all" id="copyAllBtn">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                    <span id="copyAllText">Copy All</span>
-                </button>
-            </div>
-            <div class="email-list" id="emailList"></div>
-        </div>
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-mode="dots">Dot permutations</button>
+      <button class="tab" data-mode="plus">Plus-tags</button>
+      <button class="tab" data-mode="bulk">Bulk usernames</button>
     </div>
 
-    <script>
-        function sanitizeUsername(username, { lowercase = true } = {}) {
-            if (typeof username !== 'string') throw new TypeError('username must be a string');
-            let s = username.trim();
-            s = lowercase ? s.toLowerCase() : s.toUpperCase();
-            s = s.replace(/\s+/g, '');
-            s = s.replace(/[^a-z0-9!#$%&'*+\-/=?^_`{|}~.]/gi, '');
-            s = s.replace(/^\.+/, '').replace(/\.+$/, '');
-            s = s.replace(/\.{2,}/g, '.');
-            return s;
-        }
+    <!-- ================= MODE: DOTS ================= -->
+    <div class="mode-panel" id="panel-dots">
+      <div class="card">
+        <div class="field">
+          <label for="username">Username <span class="hint">local part, before @</span></label>
+          <input type="text" id="username" placeholder="johndoe" autocomplete="off" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="domain">Domain</label>
+          <input type="text" id="domain" value="gmail.com" autocomplete="off" autocapitalize="off" spellcheck="false">
+        </div>
 
-        function isValidDomain(domain) {
-            return typeof domain === 'string' && /^[a-z0-9.-]+\.[a-z]{2,63}$/i.test(domain);
-        }
+        <div class="opt-grid">
+          <label class="opt">
+            <div><div class="opt-label">Lowercase</div><div class="opt-desc">Normalize casing before generating</div></div>
+            <div class="switch on" id="sw-lowercase"></div>
+          </label>
+          <label class="opt">
+            <div><div class="opt-label">Sanitize input</div><div class="opt-desc">Strip characters invalid in an address</div></div>
+            <div class="switch on" id="sw-sanitize"></div>
+          </label>
+          <label class="opt">
+            <div><div class="opt-label">Include plus-tag</div><div class="opt-desc">Append <span style="font-family:var(--mono)">+tag</span> to every variant</div></div>
+            <div class="switch" id="sw-plusintegrate"></div>
+          </label>
+        </div>
+        <div class="field" id="plusTagField" style="display:none; margin-top:12px;">
+          <label for="plusTag">Tag</label>
+          <input type="text" id="plusTag" placeholder="newsletter" autocomplete="off" autocapitalize="off" spellcheck="false">
+        </div>
+      </div>
+    </div>
 
-        function isValidEmail(email) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        }
+    <!-- ================= MODE: PLUS ================= -->
+    <div class="mode-panel" id="panel-plus" style="display:none;">
+      <div class="card">
+        <div class="field">
+          <label for="plusUsername">Username</label>
+          <input type="text" id="plusUsername" placeholder="johndoe" autocomplete="off" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="plusDomain">Domain</label>
+          <input type="text" id="plusDomain" value="gmail.com" autocomplete="off" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="plusTags">Tags <span class="hint">comma or newline separated</span></label>
+          <textarea id="plusTags" placeholder="shopping, newsletter, work, signup-test">shopping, newsletter, work, social</textarea>
+        </div>
+      </div>
+    </div>
 
-        function createAllPossibleEmails(username, options = {}) {
-            const {
-                domain = "example.com",
-                lowercase = true,
-                sanitize = true
-            } = options;
+    <!-- ================= MODE: BULK ================= -->
+    <div class="mode-panel" id="panel-bulk" style="display:none;">
+      <div class="card">
+        <div class="field">
+          <label for="bulkUsernames">Usernames <span class="hint">one per line</span></label>
+          <textarea id="bulkUsernames" placeholder="johndoe&#10;jane.smith&#10;a.b.c" style="min-height:110px;"></textarea>
+        </div>
+        <div class="field">
+          <label for="bulkDomain">Domain</label>
+          <input type="text" id="bulkDomain" value="gmail.com" autocomplete="off" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="opt-grid">
+          <label class="opt">
+            <div><div class="opt-label">Lowercase</div><div class="opt-desc">Normalize casing before generating</div></div>
+            <div class="switch on" id="sw-bulk-lowercase"></div>
+          </label>
+        </div>
+      </div>
+    </div>
 
-            if (!isValidDomain(domain)) throw new Error("Invalid domain");
-            if (typeof username !== 'string' || username.length === 0) throw new Error("Invalid username");
+    <button class="btn-primary" id="generateBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+      Generate
+    </button>
+    <div class="error" id="error">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="errorText"></span>
+    </div>
 
-            let base = sanitize ? sanitizeUsername(username, { lowercase }) : (lowercase ? username.toLowerCase() : username.toUpperCase());
-            if (base.length === 0) throw new Error("Username contains no valid characters");
+    <div class="results" id="results" style="margin-top:22px;">
+      <div class="stats-row">
+        <div class="stat"><b id="statCount">0</b><span>Variants</span></div>
+        <div class="stat"><b id="statChars">0</b><span>Chars</span></div>
+        <div class="stat"><b id="statTime">0ms</b><span>Generated in</span></div>
+      </div>
 
-            const results = new Set();
-            const chars = base.split('');
-            const n = chars.length;
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="filterInput" placeholder="Filter results…" autocomplete="off">
+      </div>
 
-            function generate(idx, current) {
-                if (idx === n) {
-                    const cleaned = current.replace(/^\.+/, '').replace(/\.+$/, '').replace(/\.{2,}/g, '.');
-                    if (cleaned.length > 0) {
-                        const email = cleaned + "@" + domain;
-                        if (isValidEmail(email)) results.add(email);
-                    }
-                    return;
-                }
-                generate(idx + 1, current + chars[idx]);
-                if (idx < n - 1) generate(idx + 1, current + chars[idx] + ".");
-            }
+      <div class="results-header">
+        <span class="results-title" id="resultsLabel">Results</span>
+      </div>
 
-            generate(0, "");
-            return Array.from(results);
-        }
+      <div class="toolrow">
+        <button class="btn-sm accent" id="copyAllBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span id="copyAllText">Copy all</span>
+        </button>
+        <button class="btn-sm" id="downloadBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          .txt
+        </button>
+        <button class="btn-sm" id="csvBtn">.csv</button>
+        <button class="btn-sm" id="shuffleOneBtn" title="Copy one random variant">Random</button>
+      </div>
 
-        // Theme Toggle
-        const themeToggle = document.getElementById('themeToggle');
-        const sunIcon = document.getElementById('sunIcon');
-        const moonIcon = document.getElementById('moonIcon');
-        const html = document.documentElement;
+      <div class="email-list" id="emailList"></div>
+      <div class="empty-search" id="emptySearch" style="display:none;">No results match your filter.</div>
+    </div>
+  </div>
 
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        html.setAttribute('data-theme', savedTheme);
-        updateThemeIcon(savedTheme);
+  <div class="bottombar" id="bottombar">
+    <div class="bottombar-inner">
+      <button class="btn-sm" id="bbClear">Clear</button>
+      <button class="btn-sm accent" id="bbCopyAll">Copy all variants</button>
+    </div>
+  </div>
 
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeIcon(newTheme);
-        });
+  <footer>Dot placement doesn't change delivery on Gmail &amp; Google Workspace addresses. Behavior varies by provider — verify before relying on this for other domains.</footer>
 
-        function updateThemeIcon(theme) {
-            if (theme === 'dark') {
-                sunIcon.style.display = 'none';
-                moonIcon.style.display = 'block';
-            } else {
-                sunIcon.style.display = 'block';
-                moonIcon.style.display = 'none';
-            }
-        }
+<script>
+/* ---------------- Core permutation engine ---------------- */
+function sanitizeUsername(username, { lowercase = true } = {}) {
+  if (typeof username !== 'string') throw new TypeError('username must be a string');
+  let s = username.trim();
+  s = lowercase ? s.toLowerCase() : s;
+  s = s.replace(/\s+/g, '');
+  s = s.replace(/[^a-z0-9!#$%&'*+\-/=?^_`{|}~.]/gi, '');
+  s = s.replace(/^\.+/, '').replace(/\.+$/, '');
+  s = s.replace(/\.{2,}/g, '.');
+  return s;
+}
+function isValidDomain(domain){ return typeof domain === 'string' && /^[a-z0-9.-]+\.[a-z]{2,63}$/i.test(domain); }
+function isValidEmail(email){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
 
-        // Email Generation
-        const generateBtn = document.getElementById('generateBtn');
-        const usernameInput = document.getElementById('username');
-        const domainInput = document.getElementById('domain');
-        const lowercaseCheckbox = document.getElementById('lowercase');
-        const sanitizeCheckbox = document.getElementById('sanitize');
-        const errorDiv = document.getElementById('error');
-        const errorText = document.getElementById('errorText');
-        const resultsDiv = document.getElementById('results');
-        const emailList = document.getElementById('emailList');
-        const countBadge = document.getElementById('countBadge');
-        const copyAllBtn = document.getElementById('copyAllBtn');
-        const copyAllText = document.getElementById('copyAllText');
+function createAllPossibleEmails(username, options = {}) {
+  const { domain = "example.com", lowercase = true, sanitize = true, suffix = "" } = options;
+  if (!isValidDomain(domain)) throw new Error("That domain doesn't look valid. Try something like gmail.com.");
+  if (typeof username !== 'string' || username.trim().length === 0) throw new Error("Enter a username first.");
 
-        let generatedEmails = [];
+  let base = sanitize ? sanitizeUsername(username, { lowercase }) : (lowercase ? username.toLowerCase() : username);
+  if (base.length === 0) throw new Error("That username has no valid characters left after sanitizing.");
+  if (base.length > 22) throw new Error("Username is long — over 20 characters generates millions of variants. Try something shorter.");
 
-        generateBtn.addEventListener('click', generateEmails);
+  const results = [];
+  const seen = new Set();
+  const chars = base.split('');
+  const n = chars.length;
 
-        function generateEmails() {
-            errorDiv.classList.remove('show');
-            resultsDiv.classList.remove('show');
-            emailList.innerHTML = '';
+  function generate(idx, current) {
+    if (idx === n) {
+      const cleaned = current.replace(/^\.+/, '').replace(/\.+$/, '').replace(/\.{2,}/g, '.');
+      if (cleaned.length > 0) {
+        const local = cleaned + suffix;
+        const email = local + "@" + domain;
+        if (isValidEmail(email) && !seen.has(email)) { seen.add(email); results.push({ email, local: cleaned }); }
+      }
+      return;
+    }
+    generate(idx + 1, current + chars[idx]);
+    if (idx < n - 1) generate(idx + 1, current + chars[idx] + ".");
+  }
+  generate(0, "");
+  return results;
+}
 
-            try {
-                const username = usernameInput.value;
-                const domain = domainInput.value;
-                const lowercase = lowercaseCheckbox.checked;
-                const sanitize = sanitizeCheckbox.checked;
+function parseTags(raw){
+  return raw.split(/[\n,]/).map(t => t.trim()).filter(Boolean);
+}
 
-                generatedEmails = createAllPossibleEmails(username, {
-                    domain,
-                    lowercase,
-                    sanitize
-                });
+/* ---------------- Theme ---------------- */
+const html = document.documentElement;
+const lightBtn = document.getElementById('lightBtn');
+const darkBtn = document.getElementById('darkBtn');
+function setTheme(t){
+  html.setAttribute('data-theme', t);
+  localStorage.setItem('theme', t);
+  lightBtn.classList.toggle('active', t === 'light');
+  darkBtn.classList.toggle('active', t === 'dark');
+}
+setTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+lightBtn.addEventListener('click', () => setTheme('light'));
+darkBtn.addEventListener('click', () => setTheme('dark'));
 
-                if (generatedEmails.length > 0) {
-                    displayResults(generatedEmails);
-                }
-            } catch (err) {
-                showError(err.message);
-            }
-        }
+/* ---------------- Tabs / modes ---------------- */
+let mode = 'dots';
+const tabs = document.querySelectorAll('.tab');
+tabs.forEach(tab => tab.addEventListener('click', () => {
+  tabs.forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  mode = tab.dataset.mode;
+  ['dots','plus','bulk'].forEach(m => {
+    document.getElementById('panel-' + m).style.display = (m === mode) ? 'block' : 'none';
+  });
+  hideResults();
+}));
 
-        function displayResults(emails) {
-            countBadge.textContent = `${emails.length} variation${emails.length !== 1 ? 's' : ''}`;
-            
-            emails.forEach((email, index) => {
-                const emailItem = document.createElement('div');
-                emailItem.className = 'email-item';
-                emailItem.style.animationDelay = `${index * 0.05}s`;
-                
-                emailItem.innerHTML = `
-                    <span class="email-text">${email}</span>
-                    <button class="btn-copy" data-email="${email}">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                    </button>
-                `;
-                
-                emailList.appendChild(emailItem);
-            });
+/* plus-tag inline toggle within dots mode */
+const swPlusIntegrate = document.getElementById('sw-plusintegrate');
+const plusTagField = document.getElementById('plusTagField');
+swPlusIntegrate.addEventListener('click', () => {
+  swPlusIntegrate.classList.toggle('on');
+  plusTagField.style.display = swPlusIntegrate.classList.contains('on') ? 'block' : 'none';
+});
+document.getElementById('sw-lowercase').addEventListener('click', function(){ this.classList.toggle('on'); });
+document.getElementById('sw-sanitize').addEventListener('click', function(){ this.classList.toggle('on'); });
+document.getElementById('sw-bulk-lowercase').addEventListener('click', function(){ this.classList.toggle('on'); });
 
-            resultsDiv.classList.add('show');
-            attachCopyListeners();
-        }
+/* ---------------- Elements ---------------- */
+const errorDiv = document.getElementById('error');
+const errorText = document.getElementById('errorText');
+const resultsDiv = document.getElementById('results');
+const emailList = document.getElementById('emailList');
+const statCount = document.getElementById('statCount');
+const statChars = document.getElementById('statChars');
+const statTime = document.getElementById('statTime');
+const resultsLabel = document.getElementById('resultsLabel');
+const filterInput = document.getElementById('filterInput');
+const emptySearch = document.getElementById('emptySearch');
+const copyAllBtn = document.getElementById('copyAllBtn');
+const copyAllText = document.getElementById('copyAllText');
+const bottombar = document.getElementById('bottombar');
 
-        function attachCopyListeners() {
-            document.querySelectorAll('.btn-copy').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const email = this.getAttribute('data-email');
-                    copyToClipboard(email, this);
-                });
-            });
-        }
+let currentResults = []; // [{email, local, badges:[]}]
 
-        copyAllBtn.addEventListener('click', () => {
-            const allEmails = generatedEmails.join('\n');
-            copyToClipboard(allEmails, copyAllBtn, true);
-        });
+function hideResults(){
+  resultsDiv.classList.remove('show');
+  bottombar.classList.remove('show');
+  errorDiv.classList.remove('show');
+}
 
-        function copyToClipboard(text, button, isAll = false) {
-            navigator.clipboard.writeText(text).then(() => {
-                if (isAll) {
-                    copyAllText.textContent = 'Copied!';
-                    setTimeout(() => {
-                        copyAllText.textContent = 'Copy All';
-                    }, 2000);
-                } else {
-                    button.classList.add('copied');
-                    button.innerHTML = `
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                    `;
-                    setTimeout(() => {
-                        button.classList.remove('copied');
-                        button.innerHTML = `
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                        `;
-                    }, 2000);
-                }
-            });
-        }
+function showError(msg){
+  errorText.textContent = msg;
+  errorDiv.classList.add('show');
+  hideResultsOnly();
+}
+function hideResultsOnly(){
+  resultsDiv.classList.remove('show');
+  bottombar.classList.remove('show');
+}
 
-        function showError(message) {
-            errorText.textContent = message;
-            errorDiv.classList.add('show');
-        }
+function dotMaskHTML(local){
+  // visualize which gaps between original letters have a dot
+  const letters = local.replace(/\./g, '');
+  let out = '<div class="dotmask">';
+  const positions = local.split('');
+  positions.forEach(ch => {
+    out += `<i class="${ch === '.' ? 'on' : ''}"></i>`;
+  });
+  out += '</div>';
+  return out;
+}
 
-        // Enter key support
-        usernameInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') generateEmails();
-        });
-        domainInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') generateEmails();
-        });
-    </script>
+function renderResults(items, label){
+  currentResults = items;
+  resultsLabel.textContent = label;
+  statCount.textContent = items.length.toLocaleString();
+  const totalChars = items.reduce((a,r) => a + r.email.length, 0);
+  statChars.textContent = totalChars.toLocaleString();
+  filterInput.value = '';
+  paintList(items);
+  resultsDiv.classList.add('show');
+  bottombar.classList.add('show');
+  errorDiv.classList.remove('show');
+  resultsDiv.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function paintList(items){
+  emailList.innerHTML = '';
+  if (items.length === 0){
+    emptySearch.style.display = 'block';
+    return;
+  }
+  emptySearch.style.display = 'none';
+  const frag = document.createDocumentFragment();
+  items.forEach((r, i) => {
+    const el = document.createElement('div');
+    el.className = 'email-item';
+    el.style.animationDelay = Math.min(i * 0.012, 0.4) + 's';
+    const badges = (r.badges || []).map(b => `<span class="badge">${b}</span>`).join('');
+    el.innerHTML = `
+      ${r.local ? dotMaskHTML(r.local) : ''}
+      <div class="email-main">
+        <span class="email-text">${r.email}</span>
+        ${badges ? `<div class="email-badges">${badges}</div>` : ''}
+      </div>
+      <button class="btn-copy" data-email="${r.email}" aria-label="Copy">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>`;
+    frag.appendChild(el);
+  });
+  emailList.appendChild(frag);
+  emailList.querySelectorAll('.btn-copy').forEach(btn => {
+    btn.addEventListener('click', () => copyToClipboard(btn.dataset.email, btn));
+  });
+}
+
+filterInput.addEventListener('input', () => {
+  const q = filterInput.value.trim().toLowerCase();
+  const filtered = q ? currentResults.filter(r => r.email.toLowerCase().includes(q)) : currentResults;
+  paintList(filtered);
+});
+
+function copyToClipboard(text, btn){
+  navigator.clipboard.writeText(text).then(() => {
+    if (btn){
+      const original = btn.innerHTML;
+      btn.classList.add('copied');
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`;
+      setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = original; }, 1500);
+    }
+  });
+}
+
+[copyAllBtn, document.getElementById('bbCopyAll')].forEach(btn => {
+  btn.addEventListener('click', () => {
+    const text = currentResults.map(r => r.email).join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+      const label = btn.id === 'copyAllBtn' ? copyAllText : btn;
+      const original = label.textContent;
+      label.textContent = 'Copied!';
+      setTimeout(() => { label.textContent = original; }, 1500);
+    });
+  });
+});
+
+document.getElementById('bbClear').addEventListener('click', hideResults);
+
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  const text = currentResults.map(r => r.email).join('\n');
+  triggerDownload(text, 'email-variants.txt', 'text/plain');
+});
+document.getElementById('csvBtn').addEventListener('click', () => {
+  const csv = 'email\n' + currentResults.map(r => r.email).join('\n');
+  triggerDownload(csv, 'email-variants.csv', 'text/csv');
+});
+function triggerDownload(content, filename, mime){
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('shuffleOneBtn').addEventListener('click', () => {
+  if (currentResults.length === 0) return;
+  const r = currentResults[Math.floor(Math.random() * currentResults.length)];
+  copyToClipboard(r.email, null);
+  const btn = document.getElementById('shuffleOneBtn');
+  const original = btn.textContent;
+  btn.textContent = 'Copied: ' + r.email.split('@')[0];
+  setTimeout(() => { btn.textContent = original; }, 1800);
+});
+
+/* ---------------- Generate ---------------- */
+document.getElementById('generateBtn').addEventListener('click', generate);
+
+function generate(){
+  const t0 = performance.now();
+  try {
+    if (mode === 'dots'){
+      const username = document.getElementById('username').value;
+      const domain = document.getElementById('domain').value.trim();
+      const lowercase = document.getElementById('sw-lowercase').classList.contains('on');
+      const sanitize = document.getElementById('sw-sanitize').classList.contains('on');
+      const usePlus = swPlusIntegrate.classList.contains('on');
+      const tag = document.getElementById('plusTag').value.trim();
+      const suffix = usePlus && tag ? ('+' + tag.replace(/\s+/g,'')) : '';
+
+      const items = createAllPossibleEmails(username, { domain, lowercase, sanitize, suffix })
+        .map(r => ({ ...r, badges: suffix ? ['plus-tag'] : [] }));
+
+      const t1 = performance.now();
+      statTime.textContent = Math.max(1, Math.round(t1 - t0)) + 'ms';
+      renderResults(items, 'Dot permutations');
+
+    } else if (mode === 'plus'){
+      const username = document.getElementById('plusUsername').value.trim();
+      const domain = document.getElementById('plusDomain').value.trim();
+      const tags = parseTags(document.getElementById('plusTags').value);
+      if (!isValidDomain(domain)) throw new Error("That domain doesn't look valid. Try something like gmail.com.");
+      if (!username) throw new Error("Enter a username first.");
+      if (tags.length === 0) throw new Error("Add at least one tag, comma or newline separated.");
+
+      const clean = sanitizeUsername(username, { lowercase: true });
+      const items = [{ email: `${clean}@${domain}`, local: clean, badges: ['base'] }];
+      tags.forEach(tag => {
+        const safeTag = tag.replace(/\s+/g, '-').replace(/[^a-z0-9\-_]/gi, '');
+        if (safeTag) items.push({ email: `${clean}+${safeTag}@${domain}`, local: clean + '+' + safeTag, badges: ['plus-tag'] });
+      });
+      const t1 = performance.now();
+      statTime.textContent = Math.max(1, Math.round(t1 - t0)) + 'ms';
+      renderResults(items, 'Plus-tag variants');
+
+    } else if (mode === 'bulk'){
+      const raw = document.getElementById('bulkUsernames').value;
+      const domain = document.getElementById('bulkDomain').value.trim();
+      const lowercase = document.getElementById('sw-bulk-lowercase').classList.contains('on');
+      const names = raw.split('\n').map(s => s.trim()).filter(Boolean);
+      if (!isValidDomain(domain)) throw new Error("That domain doesn't look valid. Try something like gmail.com.");
+      if (names.length === 0) throw new Error("Add at least one username, one per line.");
+      if (names.length > 25) throw new Error("Max 25 usernames at once for bulk mode — split into batches.");
+
+      let items = [];
+      names.forEach(name => {
+        const clean = sanitizeUsername(name, { lowercase });
+        if (clean) items.push({ email: `${clean}@${domain}`, local: clean, badges: [] });
+      });
+      const t1 = performance.now();
+      statTime.textContent = Math.max(1, Math.round(t1 - t0)) + 'ms';
+      renderResults(items, `Bulk — ${names.length} usernames`);
+    }
+  } catch (err) {
+    showError(err.message);
+  }
+}
+
+/* Enter key support across text inputs */
+document.querySelectorAll('input[type="text"]').forEach(inp => {
+  inp.addEventListener('keypress', e => { if (e.key === 'Enter') generate(); });
+});
+</script>
 </body>
 </html>
