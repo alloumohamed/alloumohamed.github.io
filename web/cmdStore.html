@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yuki Store — GoatBot Commands</title>
+<style>
+  :root{
+    --ink:#181410;
+    --paper:#f6f1e7;
+    --paper-dim:#efe8d9;
+    --line:#ddd3bd;
+    --moss:#3f5b45;
+    --moss-dark:#2c4231;
+    --clay:#a3552f;
+    --clay-soft:#e7d3bf;
+    --muted:#6f6558;
+    --card-bg:#fffdf8;
+    --radius:2px;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  @font-face { font-family:'Fraunces'; src: local('Georgia'); }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+
+  a{color:inherit;}
+
+  /* ---------- Header / masthead ---------- */
+  header.masthead{
+    border-bottom:2px solid var(--ink);
+    padding:28px 20px 18px;
+    background:
+      repeating-linear-gradient(135deg, transparent, transparent 26px, rgba(0,0,0,0.018) 26px, rgba(0,0,0,0.018) 27px),
+      var(--paper);
+    position:relative;
+  }
+  .masthead-inner{max-width:1080px;margin:0 auto;}
+  .masthead-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .brand{
+    font-family:var(--serif);
+    font-weight:700;
+    font-size:clamp(28px, 5vw, 44px);
+    letter-spacing:-0.01em;
+    line-height:1;
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  .brand .goat{
+    font-family:var(--mono);
+    font-size:12px;
+    font-weight:600;
+    color:var(--moss-dark);
+    background:var(--clay-soft);
+    padding:3px 8px;
+    border-radius:var(--radius);
+    letter-spacing:0.03em;
+    transform:translateY(-4px);
+  }
+  .masthead-meta{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--muted);
+    text-align:right;
+  }
+  .tagline{
+    margin-top:6px;
+    font-size:15px;
+    color:var(--muted);
+    max-width:56ch;
+    line-height:1.5;
+  }
+
+  /* ---------- Controls ---------- */
+  .controls{
+    max-width:1080px;
+    margin:0 auto;
+    padding:20px 20px 0;
+  }
+  .search-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .search-box{
+    flex:1 1 320px;
+    position:relative;
+  }
+  .search-box input{
+    width:100%;
+    padding:13px 14px 13px 38px;
+    border:1.5px solid var(--ink);
+    border-radius:var(--radius);
+    background:var(--card-bg);
+    font-family:var(--sans);
+    font-size:15px;
+    color:var(--ink);
+  }
+  .search-box input:focus{
+    outline:none;
+    box-shadow: 0 0 0 3px var(--clay-soft);
+    border-color:var(--clay);
+  }
+  .search-box svg{
+    position:absolute;
+    left:12px;
+    top:50%;
+    transform:translateY(-50%);
+    width:16px;height:16px;
+    stroke:var(--muted);
+  }
+  select#sortSelect{
+    border:1.5px solid var(--ink);
+    background:var(--card-bg);
+    padding:0 14px;
+    border-radius:var(--radius);
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  button#refreshBtn{
+    border:1.5px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    padding:0 18px;
+    border-radius:var(--radius);
+    font-family:var(--mono);
+    font-size:13px;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  button#refreshBtn:hover{background:var(--moss-dark); border-color:var(--moss-dark);}
+  button#refreshBtn:disabled{opacity:.5; cursor:default;}
+
+  .filter-row{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:14px;
+    align-items:center;
+  }
+  .filter-label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--muted);
+    margin-right:4px;
+  }
+  .chip{
+    border:1px solid var(--line);
+    background:var(--paper-dim);
+    color:var(--ink);
+    padding:6px 13px;
+    border-radius:100px;
+    font-size:13px;
+    font-family:var(--sans);
+    cursor:pointer;
+    transition:all .12s ease;
+    white-space:nowrap;
+  }
+  .chip:hover{border-color:var(--ink);}
+  .chip.active{
+    background:var(--moss);
+    border-color:var(--moss);
+    color:#fff;
+  }
+
+  .status-line{
+    max-width:1080px;
+    margin:16px auto 0;
+    padding:0 20px;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--muted);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+
+  /* ---------- Grid ---------- */
+  main{
+    max-width:1080px;
+    margin:0 auto;
+    padding:18px 20px 80px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+    gap:16px;
+    margin-top:14px;
+  }
+
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    transition:border-color .15s ease, transform .15s ease;
+    cursor:pointer;
+  }
+  .card:hover{
+    border-color:var(--ink);
+    transform:translateY(-2px);
+  }
+  .thumb{
+    width:100%;
+    aspect-ratio:16/10;
+    background:var(--paper-dim);
+    position:relative;
+    overflow:hidden;
+    border-bottom:1px solid var(--line);
+  }
+  .thumb img{
+    width:100%;height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .thumb .noimg{
+    width:100%;height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    flex-direction:column;
+    gap:6px;
+  }
+  .thumb .noimg svg{width:22px;height:22px;stroke:var(--muted);opacity:.6;}
+  .card-body{
+    padding:14px 14px 16px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    flex:1;
+  }
+  .card-name{
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:15px;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .card-name .prefix{color:var(--clay); font-weight:600;}
+  .card-desc{
+    font-size:13.5px;
+    color:var(--muted);
+    line-height:1.45;
+    flex:1;
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .card-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:6px;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--muted);
+  }
+  .badge{
+    background:var(--paper-dim);
+    border:1px solid var(--line);
+    padding:2px 8px;
+    border-radius:100px;
+    font-size:10.5px;
+  }
+
+  /* ---------- Loading / empty states ---------- */
+  .state{
+    text-align:center;
+    padding:70px 20px;
+    color:var(--muted);
+  }
+  .state h3{
+    font-family:var(--serif);
+    font-size:22px;
+    color:var(--ink);
+    margin:0 0 8px;
+  }
+  .state p{font-size:14px; margin:0 0 16px;}
+  .spinner{
+    width:28px;height:28px;
+    border:3px solid var(--line);
+    border-top-color:var(--clay);
+    border-radius:50%;
+    margin:0 auto 18px;
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .skeleton-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+    gap:16px;
+    margin-top:14px;
+  }
+  .skel-card{
+    background:var(--card-bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+  }
+  .skel-thumb{
+    width:100%;aspect-ratio:16/10;
+    background:linear-gradient(90deg, var(--paper-dim) 25%, #fff 37%, var(--paper-dim) 63%);
+    background-size:400% 100%;
+    animation:shimmer 1.4s ease infinite;
+  }
+  .skel-line{
+    height:10px;
+    margin:12px 14px;
+    border-radius:4px;
+    background:linear-gradient(90deg, var(--paper-dim) 25%, #fff 37%, var(--paper-dim) 63%);
+    background-size:400% 100%;
+    animation:shimmer 1.4s ease infinite;
+  }
+  .skel-line.short{width:50%;}
+  @keyframes shimmer{0%{background-position:100% 0;}100%{background-position:-100% 0;}}
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(20,17,13,0.6);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:50;
+  }
+  .overlay.open{display:flex;}
+  .modal{
+    background:var(--card-bg);
+    max-width:640px;
+    width:100%;
+    max-height:88vh;
+    overflow-y:auto;
+    border-radius:var(--radius);
+    border:1px solid var(--ink);
+  }
+  .modal-thumb{
+    width:100%;
+    aspect-ratio:16/10;
+    background:var(--paper-dim);
+    border-bottom:1px solid var(--line);
+  }
+  .modal-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .modal-body{padding:24px;}
+  .modal-close{
+    position:sticky;
+    top:12px;
+    float:right;
+    margin:12px 12px 0 0;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    width:30px;height:30px;
+    border-radius:50%;
+    cursor:pointer;
+    font-size:16px;
+    line-height:1;
+    z-index:2;
+  }
+  .modal h2{
+    font-family:var(--mono);
+    font-size:22px;
+    margin:0 0 4px;
+  }
+  .modal .modal-sub{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:16px;
+  }
+  .modal-desc{font-size:15px; line-height:1.6; color:var(--ink); margin-bottom:20px;}
+  .modal-meta{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 20px;
+    font-size:13px;
+    border-top:1px solid var(--line);
+    padding-top:16px;
+  }
+  .modal-meta dt{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);}
+  .modal-meta dd{margin:2px 0 0; font-weight:600;}
+  .modal-link{
+    display:inline-block;
+    margin-top:20px;
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--moss-dark);
+    text-decoration:underline;
+    text-underline-offset:3px;
+  }
+
+  footer{
+    text-align:center;
+    padding:26px 20px 40px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--muted);
+  }
+
+  @media (max-width:520px){
+    .masthead-meta{display:none;}
+    .modal-meta{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-top">
+      <div class="brand">Yuki Store <span class="goat">GOATBOT CMDS</span></div>
+      <div class="masthead-meta" id="repoMeta">source: alloumohamed/CmdStore</div>
+    </div>
+    <p class="tagline">Browse GoatBot Messenger command scripts pulled live from GitHub — name, description, and a screenshot preview for each.</p>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="search-row">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="searchInput" type="text" placeholder="Search commands by name or description…" autocomplete="off">
+    </div>
+    <select id="sortSelect">
+      <option value="az">Sort: A → Z</option>
+      <option value="za">Sort: Z → A</option>
+      <option value="screenshot">Sort: has screenshot first</option>
+    </select>
+    <button id="refreshBtn" title="Re-fetch from GitHub">↻ Refresh</button>
+  </div>
+  <div class="filter-row" id="filterRow">
+    <span class="filter-label">Filter</span>
+    <button class="chip active" data-filter="all">All</button>
+    <button class="chip" data-filter="screenshot">With preview</button>
+    <button class="chip" data-filter="noscreenshot">No preview</button>
+  </div>
+</div>
+
+<div class="status-line">
+  <span id="statusText">Connecting to GitHub…</span>
+  <span id="countText"></span>
+</div>
+
+<main>
+  <div id="loadingState" class="skeleton-grid" aria-hidden="true"></div>
+  <div id="errorState" class="state" style="display:none;">
+    <h3>Couldn't reach the repo</h3>
+    <p id="errorDetail">Something went wrong talking to GitHub's API.</p>
+    <button id="retryBtn" class="chip" style="display:inline-block;">Try again</button>
+  </div>
+  <div id="emptyState" class="state" style="display:none;">
+    <h3>No commands match</h3>
+    <p>Try a different search term or clear your filters.</p>
+  </div>
+  <div id="diagState" class="state" style="display:none; text-align:left; max-width:720px; margin:0 auto;">
+    <h3 style="text-align:center;">Files were found, but none parsed</h3>
+    <p style="text-align:center;" id="diagSummary"></p>
+    <div id="diagList" style="font-family:var(--mono); font-size:12px; background:var(--card-bg); border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px; max-height:340px; overflow-y:auto;"></div>
+  </div>
+  <div id="grid" class="grid" style="display:none;"></div>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<footer>
+  Data fetched client-side from the public GitHub API · github.com/alloumohamed/CmdStore
+</footer>
+
+<script>
+(function(){
+  const OWNER = "alloumohamed";
+  const REPO = "CmdStore";
+  const BRANCH_CANDIDATES = ["main", "master"];
+  const DIR_PATH = "Messenger/GoatBot";
+  const API_BASE = "https://api.github.com";
+
+  const state = {
+    scripts: [],       // { name, path, raw, config: {...} }
+    filtered: [],
+    query: "",
+    filter: "all",
+    sort: "az",
+    branch: null
+  };
+
+  const el = {
+    grid: document.getElementById("grid"),
+    loading: document.getElementById("loadingState"),
+    errorState: document.getElementById("errorState"),
+    errorDetail: document.getElementById("errorDetail"),
+    emptyState: document.getElementById("emptyState"),
+    diagState: document.getElementById("diagState"),
+    diagSummary: document.getElementById("diagSummary"),
+    diagList: document.getElementById("diagList"),
+    statusText: document.getElementById("statusText"),
+    countText: document.getElementById("countText"),
+    searchInput: document.getElementById("searchInput"),
+    sortSelect: document.getElementById("sortSelect"),
+    refreshBtn: document.getElementById("refreshBtn"),
+    retryBtn: document.getElementById("retryBtn"),
+    filterRow: document.getElementById("filterRow"),
+    overlay: document.getElementById("overlay"),
+    modal: document.getElementById("modal"),
+  };
+
+  function renderSkeletons(n){
+    el.loading.innerHTML = "";
+    for(let i=0;i<n;i++){
+      const c = document.createElement("div");
+      c.className = "skel-card";
+      c.innerHTML = `<div class="skel-thumb"></div><div class="skel-line"></div><div class="skel-line short"></div>`;
+      el.loading.appendChild(c);
+    }
+  }
+  renderSkeletons(8);
+
+  function showState(name){
+    el.loading.style.display = name === "loading" ? "grid" : "none";
+    el.errorState.style.display = name === "error" ? "block" : "none";
+    el.emptyState.style.display = name === "empty" ? "block" : "none";
+    el.diagState.style.display = name === "diag" ? "block" : "none";
+    el.grid.style.display = name === "grid" ? "grid" : "none";
+  }
+
+  function showDiagnostics(diagnostics, totalFiles){
+    showState("diag");
+    el.diagSummary.textContent = `${totalFiles} .js file${totalFiles===1?'':'s'} found under ${DIR_PATH}, but the config parser couldn't read any of them. Open the browser console for full detail — here's a summary of the first ones:`;
+    el.diagList.innerHTML = diagnostics.slice(0, 15).map(d =>
+      `<div style="margin-bottom:8px;"><strong>${escapeHtml(d.path)}</strong><br><span style="color:${d.ok?'#3f5b45':'#a3552f'}">${d.ok ? 'parsed ok' : escapeHtml(d.reason || 'unknown failure')}</span></div>`
+    ).join("");
+  }
+
+  async function fetchJSON(url){
+    const res = await fetch(url, { headers: { "Accept": "application/vnd.github+json" } });
+    if(!res.ok){
+      const err = new Error(`GitHub API ${res.status} for ${url}`);
+      err.status = res.status;
+      throw err;
+    }
+    return res.json();
+  }
+
+  async function listDirRecursive(path, branch){
+    // Returns flat list of .js file entries under `path`, recursing into subfolders
+    const url = `${API_BASE}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path).replace(/%2F/g,'/')}?ref=${branch}`;
+    const items = await fetchJSON(url);
+    let files = [];
+    for(const item of items){
+      if(item.type === "file" && item.name.endsWith(".js")){
+        files.push(item);
+      } else if(item.type === "dir"){
+        try{
+          const nested = await listDirRecursive(item.path, branch);
+          files = files.concat(nested);
+        }catch(e){ /* skip unreadable subdir */ }
+      }
+    }
+    return files;
+  }
+
+  // Finds the index of the `{` that opens the object literal assigned to a
+  // `config` key, given the index of the word "config" itself.
+  function findBraceAfterConfigKeyword(source, keywordIdx){
+    // move past "config", then past whitespace/quotes, then accept either
+    // "config: {" (object property) or "config = {" (assignment, as in
+    // `module.exports.config = {...}`)
+    let i = keywordIdx + "config".length;
+    while(i < source.length && /[\s'"]/.test(source[i])) i++;
+    if(source[i] === ":" || source[i] === "="){
+      i++;
+    } else {
+      return -1;
+    }
+    while(i < source.length && /\s/.test(source[i])) i++;
+    if(source[i] !== "{") return -1;
+    return i;
+  }
+
+  // Walks from an opening brace to find its matching closing brace,
+  // correctly skipping over strings (single/double/template, with
+  // template-literal ${...} interpolation), comments, and regex-unlikely
+  // contexts common in these command scripts.
+  function findMatchingBrace(source, braceStart){
+    let depth = 0, i = braceStart, inStr = null, escape = false;
+    let templateDepth = 0; // tracks nested ${ } inside a template literal
+    for(; i < source.length; i++){
+      const c = source[i];
+      const c2 = source[i+1];
+
+      if(inStr === "`"){
+        if(escape){ escape = false; continue; }
+        if(c === "\\"){ escape = true; continue; }
+        if(c === "$" && c2 === "{"){ templateDepth++; inStr = null; depth++; i++; continue; }
+        if(c === "`"){ inStr = null; }
+        continue;
+      }
+      if(inStr){
+        if(escape){ escape = false; continue; }
+        if(c === "\\"){ escape = true; continue; }
+        if(c === inStr){ inStr = null; }
+        continue;
+      }
+      // line comment
+      if(c === "/" && c2 === "/"){
+        const nl = source.indexOf("\n", i);
+        i = nl === -1 ? source.length : nl;
+        continue;
+      }
+      // block comment
+      if(c === "/" && c2 === "*"){
+        const endC = source.indexOf("*/", i+2);
+        i = endC === -1 ? source.length : endC + 1;
+        continue;
+      }
+      if(c === '"' || c === "'"){ inStr = c; continue; }
+      if(c === "`"){ inStr = "`"; continue; }
+
+      if(c === "{"){ depth++; continue; }
+      if(c === "}"){
+        depth--;
+        if(templateDepth > 0 && depth === templateDepth - 1){
+          // closed a ${ } interpolation, go back into template string mode
+          templateDepth--;
+          inStr = "`";
+          continue;
+        }
+        if(depth === 0){ return i + 1; }
+        continue;
+      }
+    }
+    return -1;
+  }
+
+  // Pull the `config: { ... }` object literal out of a GoatBot command
+  // script's module.exports, without eval'ing the whole file (which would
+  // fail anyway since `require` isn't available in the browser).
+  function extractConfig(source, debugLog){
+    // Try every occurrence of the word "config" as a standalone identifier
+    // (not part of e.g. "configPath") until one of them is followed by
+    // `: {` and yields a parseable object literal.
+    const re = /\bconfig\b/g;
+    let m;
+    let attempts = 0;
+    while((m = re.exec(source)) !== null){
+      attempts++;
+      const braceStart = findBraceAfterConfigKeyword(source, m.index);
+      if(braceStart === -1) continue;
+      const braceEnd = findMatchingBrace(source, braceStart);
+      if(braceEnd === -1) continue;
+      const objLiteral = source.slice(braceStart, braceEnd);
+      try{
+        const fn = new Function("return (" + objLiteral + ");");
+        const result = fn();
+        if(result && typeof result === "object" && result.name){
+          return result;
+        }
+      }catch(e){
+        if(debugLog) debugLog.push(`parse attempt failed: ${e.message}`);
+      }
+    }
+    if(debugLog) debugLog.push(`no valid config object found after ${attempts} "config" occurrence(s)`);
+    return null;
+  }
+
+  function resolveScreenshotUrl(rawScreenshot, filePath, branch){
+    if(!rawScreenshot) return null;
+    if(/^https?:\/\//i.test(rawScreenshot)) return rawScreenshot;
+    // relative path — resolve against the script's directory
+    const dir = filePath.substring(0, filePath.lastIndexOf("/"));
+    let cleaned = rawScreenshot.replace(/^\.\//, "");
+    const fullPath = dir ? `${dir}/${cleaned}` : cleaned;
+    return `https://raw.githubusercontent.com/${OWNER}/${REPO}/${branch}/${fullPath}`;
+  }
+
+  async function loadAll(){
+    showState("loading");
+    el.statusText.textContent = "Connecting to GitHub…";
+    el.countText.textContent = "";
+    el.refreshBtn.disabled = true;
+
+    try{
+      // Determine default branch
+      let branch = null, files = null, lastErr = null;
+      for(const b of BRANCH_CANDIDATES){
+        try{
+          el.statusText.textContent = `Listing scripts on branch "${b}"…`;
+          files = await listDirRecursive(DIR_PATH, b);
+          branch = b;
+          break;
+        }catch(e){ lastErr = e; }
+      }
+      if(!branch){
+        throw lastErr || new Error("Could not find Messenger/GoatBot on main or master.");
+      }
+      state.branch = branch;
+
+      if(files.length === 0){
+        state.scripts = [];
+        showState("diag");
+        el.diagSummary.textContent = `Connected to ${OWNER}/${REPO} (${branch}), but no .js files were found under "${DIR_PATH}". The folder may have moved, be named differently, or use a different file extension.`;
+        el.diagList.innerHTML = "";
+        el.statusText.textContent = `Connected — 0 .js files found under ${DIR_PATH}`;
+        el.refreshBtn.disabled = false;
+        return;
+      }
+
+      el.statusText.textContent = `Found ${files.length} script${files.length===1?'':'s'} — fetching details…`;
+      renderSkeletons(Math.min(files.length, 12));
+
+      const results = [];
+      const diagnostics = []; // { path, ok, reason }
+      const concurrency = 6;
+      let cursor = 0;
+      let done = 0;
+
+      async function worker(){
+        while(cursor < files.length){
+          const idx = cursor++;
+          const file = files[idx];
+          const debugLog = [];
+          try{
+            const res = await fetch(file.download_url);
+            if(!res.ok){
+              diagnostics.push({path: file.path, ok:false, reason: `download failed: HTTP ${res.status}`});
+              continue;
+            }
+            const src = await res.text();
+            const config = extractConfig(src, debugLog);
+            if(config && config.name){
+              const descRaw = config.description;
+              const descEn = (descRaw && typeof descRaw === "object")
+                ? (descRaw.en || descRaw.EN || Object.values(descRaw)[0] || "")
+                : (typeof descRaw === "string" ? descRaw : "");
+              const screenshotUrl = resolveScreenshotUrl(config.screenshot, file.path, branch);
+              results.push({
+                name: config.name,
+                path: file.path,
+                htmlUrl: file.html_url,
+                version: config.version || null,
+                role: (config.role !== undefined) ? config.role : null,
+                author: config.author || null,
+                description: descEn || "No description provided.",
+                screenshot: screenshotUrl
+              });
+              diagnostics.push({path: file.path, ok:true});
+            } else {
+              diagnostics.push({path: file.path, ok:false, reason: debugLog.join("; ") || "config not found"});
+            }
+          }catch(e){
+            diagnostics.push({path: file.path, ok:false, reason: `error: ${e.message}`});
+          }finally{
+            done++;
+            el.statusText.textContent = `Fetching details… (${done}/${files.length})`;
+          }
+        }
+      }
+
+      await Promise.all(Array.from({length: Math.min(concurrency, files.length)}, worker));
+
+      results.sort((a,b) => a.name.localeCompare(b.name));
+      state.scripts = results;
+      state.diagnostics = diagnostics;
+      console.log("YukiStoreCmds diagnostics:", diagnostics);
+
+      if(results.length === 0){
+        el.statusText.textContent = `Connected, but 0 of ${files.length} files parsed. See details below.`;
+        showDiagnostics(diagnostics, files.length);
+        return;
+      }
+
+      el.statusText.textContent = `Connected to ${OWNER}/${REPO} (${branch}) · ${DIR_PATH}`;
+      applyFiltersAndRender();
+    }catch(err){
+      showState("error");
+      let detail = err.message || String(err);
+      if(err.status === 403){
+        detail = "GitHub API rate limit reached (unauthenticated requests are limited to 60/hour). Wait a bit and try again.";
+      } else if(err.status === 404){
+        detail = `Couldn't find "${DIR_PATH}" in this repository on main or master. It may have moved or been renamed.`;
+      }
+      el.errorDetail.textContent = detail;
+      el.statusText.textContent = "Failed to load.";
+    }finally{
+      el.refreshBtn.disabled = false;
+    }
+  }
+
+  function applyFiltersAndRender(){
+    let list = state.scripts.slice();
+
+    if(state.query.trim()){
+      const q = state.query.trim().toLowerCase();
+      list = list.filter(s =>
+        s.name.toLowerCase().includes(q) ||
+        (s.description && s.description.toLowerCase().includes(q))
+      );
+    }
+
+    if(state.filter === "screenshot") list = list.filter(s => !!s.screenshot);
+    if(state.filter === "noscreenshot") list = list.filter(s => !s.screenshot);
+
+    if(state.sort === "az") list.sort((a,b) => a.name.localeCompare(b.name));
+    if(state.sort === "za") list.sort((a,b) => b.name.localeCompare(a.name));
+    if(state.sort === "screenshot") list.sort((a,b) => (b.screenshot?1:0) - (a.screenshot?1:0) || a.name.localeCompare(b.name));
+
+    state.filtered = list;
+    render();
+  }
+
+  function cardTemplate(s, idx){
+    const thumb = s.screenshot
+      ? `<img src="${s.screenshot}" alt="${escapeHtml(s.name)} screenshot" loading="lazy" onerror="this.closest('.thumb').innerHTML='${noImgSVG()}'">`
+      : noImgSVG();
+    return `
+      <article class="card" data-idx="${idx}" tabindex="0" role="button" aria-label="View details for ${escapeHtml(s.name)}">
+        <div class="thumb">${thumb}</div>
+        <div class="card-body">
+          <div class="card-name"><span class="prefix">/</span>${escapeHtml(s.name)}</div>
+          <div class="card-desc">${escapeHtml(s.description)}</div>
+          <div class="card-foot">
+            <span>${s.version ? 'v'+escapeHtml(String(s.version)) : ''}</span>
+            <span class="badge">${s.screenshot ? 'preview' : 'no preview'}</span>
+          </div>
+        </div>
+      </article>`;
+  }
+
+  function noImgSVG(){
+    return `<div class="noimg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="1.5"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5.5-5.5L4 21"/></svg><span>no screenshot</span></div>`;
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[m]));
+  }
+
+  function render(){
+    el.countText.textContent = state.scripts.length
+      ? `${state.filtered.length} of ${state.scripts.length} command${state.scripts.length===1?'':'s'}`
+      : "";
+
+    if(state.scripts.length === 0){
+      showState("empty");
+      return;
+    }
+    if(state.filtered.length === 0){
+      showState("empty");
+      return;
+    }
+    el.grid.innerHTML = state.filtered.map((s,i) => cardTemplate(s,i)).join("");
+    showState("grid");
+
+    el.grid.querySelectorAll(".card").forEach(card => {
+      card.addEventListener("click", () => openModal(state.filtered[+card.dataset.idx]));
+      card.addEventListener("keypress", (e) => {
+        if(e.key === "Enter") openModal(state.filtered[+card.dataset.idx]);
+      });
+    });
+  }
+
+  function openModal(s){
+    const thumb = s.screenshot
+      ? `<div class="modal-thumb"><img src="${s.screenshot}" alt="${escapeHtml(s.name)} screenshot" onerror="this.parentElement.style.display='none'"></div>`
+      : "";
+    el.modal.innerHTML = `
+      <button class="modal-close" id="modalCloseBtn" aria-label="Close">✕</button>
+      ${thumb}
+      <div class="modal-body">
+        <h2>/${escapeHtml(s.name)}</h2>
+        <div class="modal-sub">${escapeHtml(s.path)}</div>
+        <p class="modal-desc">${escapeHtml(s.description)}</p>
+        <dl class="modal-meta">
+          <div><dt>Version</dt><dd>${s.version ? escapeHtml(String(s.version)) : '—'}</dd></div>
+          <div><dt>Author</dt><dd>${s.author ? escapeHtml(String(s.author)) : '—'}</dd></div>
+          <div><dt>Role</dt><dd>${s.role !== null ? escapeHtml(String(s.role)) : '—'}</dd></div>
+          <div><dt>Preview</dt><dd>${s.screenshot ? 'Available' : 'Not provided'}</dd></div>
+        </dl>
+        <a class="modal-link" href="${s.htmlUrl}" target="_blank" rel="noopener">View source on GitHub →</a>
+      </div>
+    `;
+    el.overlay.classList.add("open");
+    document.getElementById("modalCloseBtn").addEventListener("click", closeModal);
+  }
+
+  function closeModal(){
+    el.overlay.classList.remove("open");
+  }
+
+  el.overlay.addEventListener("click", (e) => {
+    if(e.target === el.overlay) closeModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if(e.key === "Escape") closeModal();
+  });
+
+  let searchDebounce;
+  el.searchInput.addEventListener("input", (e) => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+      state.query = e.target.value;
+      applyFiltersAndRender();
+    }, 120);
+  });
+
+  el.sortSelect.addEventListener("change", (e) => {
+    state.sort = e.target.value;
+    applyFiltersAndRender();
+  });
+
+  el.filterRow.addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if(!chip) return;
+    el.filterRow.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    state.filter = chip.dataset.filter;
+    applyFiltersAndRender();
+  });
+
+  el.refreshBtn.addEventListener("click", loadAll);
+  el.retryBtn.addEventListener("click", loadAll);
+
+  loadAll();
+})();
+</script>
+
+</body>
+</html>
