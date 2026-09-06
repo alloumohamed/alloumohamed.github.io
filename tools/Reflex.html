@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reflex — a quiet reaction-time practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --surface: #fdfcf9;
+    --border: #e4e0d6;
+    --text: #33312c;
+    --text-dim: #8b877c;
+    --accent: #b3735f;
+    --accent-soft: #e8d9d2;
+    --go: #7d9b76;
+    --go-soft: #e3ecdf;
+    --caution: #c99a52;
+  }
+
+  * { box-sizing: border-box; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+  }
+
+  .stage { width: 100%; max-width: 440px; }
+
+  header { text-align: center; margin-bottom: 22px; }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 1.7rem;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--text);
+  }
+
+  header p {
+    margin: 6px 0 0;
+    color: var(--text-dim);
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 24px;
+    box-shadow: 0 1px 2px rgba(60,50,30,0.04), 0 8px 24px rgba(60,50,30,0.04);
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat {
+    text-align: center;
+    padding: 12px 6px;
+    background: rgba(0,0,0,0.015);
+    border-radius: 14px;
+  }
+  .stat .label { font-size: 0.68rem; color: var(--text-dim); margin-bottom: 3px; }
+  .stat .value {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 1.4rem;
+    color: var(--text);
+  }
+  .stat.best .value { color: var(--go); }
+
+  .field {
+    position: relative;
+    height: 260px;
+    border-radius: 18px;
+    background: #fbfaf7;
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.4s ease, border-color 0.4s ease;
+  }
+
+  .field.state-armed { background: #fbf7f2; border-color: var(--accent-soft); }
+  .field.state-go { background: var(--go-soft); border-color: var(--go); }
+  .field.state-toosoon { background: #f8ece7; border-color: var(--caution); }
+
+  .field-message {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 1.15rem;
+    color: var(--text-dim);
+    max-width: 260px;
+    line-height: 1.5;
+    transition: color 0.3s ease, opacity 0.3s ease;
+  }
+  .field.state-go .field-message { color: var(--go); font-size: 1.3rem; }
+  .field.state-toosoon .field-message { color: var(--caution); }
+
+  .target-dot {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--go);
+    opacity: 0;
+    display: none;
+    transition: opacity 0.25s ease;
+  }
+  .field.state-go .target-dot { display: block; opacity: 1; }
+
+  .reading-line {
+    text-align: center;
+    min-height: 22px;
+    margin-top: 16px;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+  }
+  .reading-line.good { color: var(--go); }
+  .reading-line.caution { color: var(--caution); }
+
+  .coach-line {
+    text-align: center;
+    min-height: 32px;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-top: 2px;
+    padding: 0 8px;
+  }
+
+  .footer-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 18px; }
+
+  .streak-badge {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    background: rgba(0,0,0,0.02);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    border-radius: 100px;
+  }
+  .streak-badge.hot { color: var(--go); border-color: rgba(125,155,118,0.35); }
+
+  #reset {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    padding: 4px;
+    font-family: 'Inter', sans-serif;
+  }
+  #reset:hover { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="stage">
+  <header>
+    <h1>Reflex</h1>
+    <p>A quiet way to practice reaction time. Tap to begin, wait for the signal, then tap as fast as you can.</p>
+  </header>
+
+  <div class="panel">
+    <div class="stats-row">
+      <div class="stat">
+        <div class="label">Last</div>
+        <div class="value" id="lastTime">—</div>
+      </div>
+      <div class="stat best">
+        <div class="label">Best</div>
+        <div class="value" id="bestTime">—</div>
+      </div>
+      <div class="stat">
+        <div class="label">Average</div>
+        <div class="value" id="avgTime">—</div>
+      </div>
+    </div>
+
+    <div class="field state-wait" id="field">
+      <div class="field-message" id="fieldMessage">Tap to begin</div>
+      <div class="target-dot" id="targetDot"></div>
+    </div>
+
+    <div class="reading-line" id="reading"></div>
+    <div class="coach-line" id="coach">Reaction time is a skill — it warms up the more you practice.</div>
+
+    <div class="footer-row">
+      <span class="streak-badge" id="streakBadge">No streak yet</span>
+      <button id="reset" onclick="resetGame()">Reset stats</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const field = document.getElementById('field');
+const fieldMessage = document.getElementById('fieldMessage');
+const targetDot = document.getElementById('targetDot');
+const reading = document.getElementById('reading');
+const coach = document.getElementById('coach');
+const streakBadge = document.getElementById('streakBadge');
+
+let state = 'idle'; // idle | armed | go | toosoon
+let armTimeout = null;
+let goTimestamp = null;
+let times = [];
+let bestMs = null;
+let streak = 0;
+
+const openingLines = [
+  "Reaction time is a skill — it warms up the more you practice.",
+  "The average adult reacts in 200–250 milliseconds. See where you land.",
+  "No pressure here, just a clean read on your reflexes.",
+];
+const goodLines = [
+  "Nicely timed.",
+  "That's a quick one.",
+  "Sharp reaction.",
+  "Good — steady hands too.",
+];
+const okLines = [
+  "Solid, middle-of-the-pack timing.",
+  "Consistent. That's worth more than a single fast tap.",
+  "A reasonable read — try to relax your hand between rounds.",
+];
+const tooSoonLines = [
+  "A little early — wait for the color to actually change.",
+  "Anticipation isn't the same as reaction. Try waiting it out.",
+  "Close, but the signal hadn't come yet.",
+];
+
+function randomFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function setFieldState(cls) {
+  field.className = 'field state-' + cls;
+}
+
+function positionDot() {
+  const w = field.clientWidth, h = field.clientHeight;
+  const size = 22;
+  const x = Math.random() * (w - size - 24) + 12;
+  const y = Math.random() * (h - size - 24) + 12;
+  targetDot.style.left = x + 'px';
+  targetDot.style.top = y + 'px';
+}
+
+function startRound() {
+  if (state === 'armed' || state === 'go') return;
+  state = 'armed';
+  reading.textContent = '';
+  reading.className = 'reading-line';
+  setFieldState('armed');
+  fieldMessage.textContent = 'Wait for it…';
+
+  const delay = 1200 + Math.random() * 2400;
+  armTimeout = setTimeout(() => {
+    state = 'go';
+    goTimestamp = performance.now();
+    positionDot();
+    setFieldState('go');
+    fieldMessage.textContent = 'Tap now';
+  }, delay);
+}
+
+function classify(ms) {
+  if (ms < 220) return 'good';
+  if (ms < 320) return 'ok';
+  return 'slow';
+}
+
+function resolveRound(playerReactionMs, tooSoon) {
+  clearTimeout(armTimeout);
+
+  if (tooSoon) {
+    state = 'toosoon';
+    setFieldState('toosoon');
+    fieldMessage.textContent = 'Too early';
+    streak = 0;
+    reading.textContent = 'Tapped before the signal appeared';
+    reading.classList.add('caution');
+    coach.textContent = randomFrom(tooSoonLines);
+    setTimeout(() => {
+      setFieldState('wait');
+      fieldMessage.textContent = 'Tap to try again';
+    }, 900);
+  } else {
+    times.push(playerReactionMs);
+    if (bestMs === null || playerReactionMs < bestMs) bestMs = playerReactionMs;
+    const avg = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+    const tier = classify(playerReactionMs);
+
+    document.getElementById('lastTime').textContent = playerReactionMs + 'ms';
+    document.getElementById('bestTime').textContent = bestMs + 'ms';
+    document.getElementById('avgTime').textContent = avg + 'ms';
+
+    if (tier === 'good') {
+      streak++;
+      reading.textContent = `${playerReactionMs}ms`;
+      reading.classList.add('good');
+      coach.textContent = randomFrom(goodLines);
+    } else {
+      streak = 0;
+      reading.textContent = `${playerReactionMs}ms`;
+      reading.className = 'reading-line';
+      coach.textContent = randomFrom(okLines);
+    }
+
+    setFieldState('wait');
+    fieldMessage.textContent = 'Tap to try again';
+  }
+
+  streakBadge.classList.remove('hot');
+  if (streak > 1) { streakBadge.textContent = `${streak} quick taps in a row`; streakBadge.classList.add('hot'); }
+  else streakBadge.textContent = 'No streak yet';
+
+  state = 'idle';
+}
+
+field.addEventListener('click', () => {
+  if (state === 'idle') {
+    startRound();
+  } else if (state === 'armed') {
+    resolveRound(null, true);
+  } else if (state === 'go') {
+    const reactionMs = Math.round(performance.now() - goTimestamp);
+    resolveRound(reactionMs, false);
+  }
+});
+
+function resetGame() {
+  clearTimeout(armTimeout);
+  times = [];
+  bestMs = null;
+  streak = 0;
+  state = 'idle';
+  document.getElementById('lastTime').textContent = '—';
+  document.getElementById('bestTime').textContent = '—';
+  document.getElementById('avgTime').textContent = '—';
+  streakBadge.className = 'streak-badge';
+  streakBadge.textContent = 'No streak yet';
+  reading.textContent = '';
+  reading.className = 'reading-line';
+  coach.textContent = randomFrom(openingLines);
+  setFieldState('wait');
+  fieldMessage.textContent = 'Tap to begin';
+}
+</script>
+</body>
+</html>
