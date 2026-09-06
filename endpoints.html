@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Endpoint Explorer — GitHub Pages Tree</title>
+<style>
+  @font-face {
+    font-family: 'JetBrains Mono';
+    src: local('JetBrains Mono');
+  }
+
+  :root {
+    --bg: #0d1117;
+    --panel: #11161d;
+    --line: #21272f;
+    --text: #d8dee6;
+    --dim: #6e7681;
+    --accent: #5fd9a4;
+    --accent-dim: #2b5c47;
+    --amber: #e0a458;
+    --mono: 'IBM Plex Mono', 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+    --sans: 'Inter', -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 20px 80px;
+  }
+
+  header {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 24px;
+    margin-bottom: 28px;
+  }
+
+  .kicker {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--dim);
+    letter-spacing: 0.02em;
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 650;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .sub {
+    color: var(--dim);
+    font-size: 14.5px;
+    line-height: 1.55;
+    max-width: 58ch;
+  }
+
+  form {
+    display: flex;
+    gap: 8px;
+    margin-top: 22px;
+  }
+
+  input[type=text] {
+    flex: 1;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 11px 14px;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  input[type=text]:focus { border-color: var(--accent-dim); }
+  input[type=text]::placeholder { color: #4b525b; }
+
+  button {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 14px;
+    background: var(--accent);
+    color: #08120d;
+    border: none;
+    padding: 0 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: filter 0.12s ease;
+  }
+
+  button:hover { filter: brightness(1.08); }
+  button:disabled { opacity: 0.5; cursor: default; }
+
+  .status {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--dim);
+    margin-top: 14px;
+    min-height: 18px;
+  }
+
+  .status.error { color: #e08a8a; }
+  .status.ok { color: var(--accent); }
+
+  .base-line {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--dim);
+    margin-top: 4px;
+  }
+
+  .base-line strong { color: var(--text); font-weight: 500; }
+
+  section.results { margin-top: 32px; }
+
+  .group {
+    margin-bottom: 4px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    background: var(--panel);
+  }
+
+  .group-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #151b22;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .group-head .name {
+    font-family: var(--mono);
+    font-size: 13.5px;
+    color: var(--amber);
+    font-weight: 500;
+  }
+
+  .group-head .count {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--dim);
+  }
+
+  ul.endpoints {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li.endpoint {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  li.endpoint:last-child { border-bottom: none; }
+
+  li.endpoint .path {
+    color: var(--text);
+    word-break: break-all;
+  }
+
+  li.endpoint .path .root-domain { color: var(--dim); }
+  li.endpoint .path .slash { color: var(--dim); }
+
+  li.endpoint .actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .icon-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--dim);
+    padding: 5px 9px;
+    font-size: 11.5px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: var(--sans);
+    transition: border-color 0.12s ease, color 0.12s ease;
+  }
+
+  .icon-btn:hover {
+    border-color: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--dim);
+    font-size: 14px;
+  }
+
+  .empty-state .glyph {
+    font-family: var(--mono);
+    font-size: 22px;
+    color: var(--line);
+    margin-bottom: 10px;
+  }
+
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .toolbar .total {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--dim);
+  }
+
+  .toolbar .total strong { color: var(--accent); }
+
+  .toolbar-actions { display: flex; gap: 8px; }
+
+  .ghost-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 12.5px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .ghost-btn:hover { border-color: var(--accent-dim); }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--dim);
+    line-height: 1.6;
+  }
+
+  code {
+    font-family: var(--mono);
+    background: #1a2029;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.92em;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">git/trees API → live route map</div>
+    <h1>Endpoint <span>Explorer</span></h1>
+    <div class="sub">Enter any GitHub Pages repo (<code>user/user.github.io</code>) and this pulls the file tree straight from GitHub's API, then generates the resulting site routes automatically — HTML files become clean endpoints, folders become groups.</div>
+    <form id="repoForm">
+      <input type="text" id="repoInput" placeholder="alloumohamed/alloumohamed.github.io" autocomplete="off" spellcheck="false">
+      <button type="submit" id="goBtn">Fetch</button>
+    </form>
+    <div class="status" id="status"></div>
+  </header>
+
+  <section class="results" id="results"></section>
+
+  <footer>
+    Calls <code>api.github.com/repos/&lt;owner&gt;/&lt;repo&gt;/git/trees/&lt;branch&gt;?recursive=1</code> directly from your browser — no server, no key. Unauthenticated GitHub API calls are capped at 60/hour per IP.
+  </footer>
+</div>
+
+<script>
+(function () {
+  const form = document.getElementById('repoForm');
+  const input = document.getElementById('repoInput');
+  const status = document.getElementById('status');
+  const results = document.getElementById('results');
+  const goBtn = document.getElementById('goBtn');
+
+  const HTML_EXT = /\.html?$/i;
+
+  function setStatus(msg, kind) {
+    status.textContent = msg;
+    status.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  function parseRepoInput(raw) {
+    raw = raw.trim();
+    raw = raw.replace(/^https?:\/\/github\.com\//i, '');
+    raw = raw.replace(/\.git$/i, '');
+    raw = raw.replace(/\/$/, '');
+    const parts = raw.split('/');
+    if (parts.length < 2) return null;
+    return { owner: parts[0], repo: parts[1] };
+  }
+
+  async function fetchDefaultBranch(owner, repo) {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+    if (!res.ok) throw new Error(res.status === 404 ? 'Repository not found' : `GitHub API error (${res.status})`);
+    const data = await res.json();
+    return data.default_branch || 'main';
+  }
+
+  async function fetchTree(owner, repo, branch) {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`);
+    if (!res.ok) {
+      if (res.status === 403) throw new Error('Rate limited by GitHub API — try again shortly');
+      throw new Error(`Could not read tree (${res.status})`);
+    }
+    return res.json();
+  }
+
+  function buildEndpoints(tree, owner, repo) {
+    const pagesRoot = `${owner}.github.io`;
+    const isUserSite = repo.toLowerCase() === pagesRoot.toLowerCase();
+    const base = isUserSite ? pagesRoot : `${pagesRoot}/${repo}`;
+
+    const groups = {};
+    tree
+      .filter(item => item.type === 'blob' && HTML_EXT.test(item.path))
+      .forEach(item => {
+        const segments = item.path.split('/');
+        const filename = segments.pop();
+        const folder = segments.join('/');
+        const isIndex = filename.toLowerCase() === 'index.html';
+
+        const slug = filename.replace(HTML_EXT, '');
+        const routePath = isIndex
+          ? (folder ? `${folder}/` : '')
+          : (folder ? `${folder}/${slug}` : slug);
+
+        const fullEndpoint = routePath ? `${base}/${routePath}` : `${base}/`;
+        const groupKey = folder || '(root)';
+
+        if (!groups[groupKey]) groups[groupKey] = [];
+        groups[groupKey].push({ endpoint: fullEndpoint, file: item.path });
+      });
+
+    return { base, groups };
+  }
+
+  function render(base, groups) {
+    results.innerHTML = '';
+
+    const groupKeys = Object.keys(groups).sort((a, b) => {
+      if (a === '(root)') return -1;
+      if (b === '(root)') return 1;
+      return a.localeCompare(b);
+    });
+
+    if (groupKeys.length === 0) {
+      results.innerHTML = `<div class="empty-state"><div class="glyph">∅</div>No HTML endpoints found in this repo.</div>`;
+      return;
+    }
+
+    const total = groupKeys.reduce((sum, k) => sum + groups[k].length, 0);
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'toolbar';
+    toolbar.innerHTML = `
+      <div class="total"><strong>${total}</strong> endpoint${total === 1 ? '' : 's'} across ${groupKeys.length} location${groupKeys.length === 1 ? '' : 's'}</div>
+      <div class="toolbar-actions"><button class="ghost-btn" id="copyAllBtn">Copy all</button></div>
+    `;
+    results.appendChild(toolbar);
+
+    groupKeys.forEach(key => {
+      const div = document.createElement('div');
+      div.className = 'group';
+
+      const head = document.createElement('div');
+      head.className = 'group-head';
+      head.innerHTML = `<span class="name">${key === '(root)' ? '/ root' : '/' + key}</span><span class="count">${groups[key].length}</span>`;
+      div.appendChild(head);
+
+      const ul = document.createElement('ul');
+      ul.className = 'endpoints';
+
+      groups[key].forEach(({ endpoint }) => {
+        const li = document.createElement('li');
+        li.className = 'endpoint';
+
+        const dotIdx = endpoint.indexOf('.io');
+        const domainPart = endpoint.slice(0, dotIdx + 3);
+        const restPart = endpoint.slice(dotIdx + 3);
+
+        const span = document.createElement('span');
+        span.className = 'path';
+        span.innerHTML = `<span class="root-domain">${domainPart}</span>${restPart}`;
+
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'icon-btn';
+        copyBtn.textContent = 'copy';
+        copyBtn.onclick = () => {
+          navigator.clipboard.writeText('https://' + endpoint);
+          copyBtn.textContent = 'copied';
+          setTimeout(() => (copyBtn.textContent = 'copy'), 1100);
+        };
+
+        const openBtn = document.createElement('button');
+        openBtn.className = 'icon-btn';
+        openBtn.textContent = 'open ↗';
+        openBtn.onclick = () => window.open('https://' + endpoint, '_blank');
+
+        actions.appendChild(copyBtn);
+        actions.appendChild(openBtn);
+        li.appendChild(span);
+        li.appendChild(actions);
+        ul.appendChild(li);
+      });
+
+      div.appendChild(ul);
+      results.appendChild(div);
+    });
+
+    document.getElementById('copyAllBtn').onclick = () => {
+      const all = groupKeys.flatMap(k => groups[k].map(g => 'https://' + g.endpoint)).join('\n');
+      navigator.clipboard.writeText(all);
+      const btn = document.getElementById('copyAllBtn');
+      btn.textContent = 'Copied';
+      setTimeout(() => (btn.textContent = 'Copy all'), 1200);
+    };
+  }
+
+  async function run(rawInput) {
+    const parsed = parseRepoInput(rawInput);
+    if (!parsed) {
+      setStatus('Enter a repo as owner/repo, e.g. alloumohamed/alloumohamed.github.io', 'error');
+      return;
+    }
+
+    goBtn.disabled = true;
+    results.innerHTML = '';
+    setStatus('Resolving default branch…');
+
+    try {
+      const branch = await fetchDefaultBranch(parsed.owner, parsed.repo);
+      setStatus(`Fetching tree from branch "${branch}"…`);
+      const data = await fetchTree(parsed.owner, parsed.repo, branch);
+
+      if (data.truncated) {
+        setStatus('Tree fetched (note: GitHub truncated results — very large repos may be incomplete)', 'ok');
+      }
+
+      const { base, groups } = buildEndpoints(data.tree, parsed.owner, parsed.repo);
+      const total = Object.values(groups).reduce((s, g) => s + g.length, 0);
+      setStatus(`Done — found ${total} endpoint${total === 1 ? '' : 's'} under ${base}`, 'ok');
+      render(base, groups);
+    } catch (err) {
+      setStatus(err.message, 'error');
+    } finally {
+      goBtn.disabled = false;
+    }
+  }
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    run(input.value);
+  });
+
+  // Preload with the repo from the conversation
+  input.value = 'alloumohamed/alloumohamed.github.io';
+  run(input.value);
+})();
+</script>
+</body>
+</html>
