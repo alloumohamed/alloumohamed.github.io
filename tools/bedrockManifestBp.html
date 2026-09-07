@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bedrock Manifest Generator</title>
+<style>
+:root {
+  --bg: #0b0d10;
+  --bg-elev: #14171c;
+  --bg-elev-2: #1a1e24;
+  --border: #262b33;
+  --border-soft: #1e222a;
+  --text: #e8eaed;
+  --text-dim: #9aa2ad;
+  --text-faint: #656d78;
+  --accent: #5fd97e;
+  --accent-dim: #2f6b3f;
+  --accent-glow: rgba(95, 217, 126, 0.15);
+  --danger: #e5636b;
+  --warn: #e0a84f;
+  --code-bg: #0e1013;
+  --radius: 10px;
+  --radius-sm: 7px;
+  --mono: "SF Mono", "Cascadia Code", Consolas, "JetBrains Mono", monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(95, 217, 126, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(95, 217, 126, 0.035) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
+  pointer-events: none;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 28px 24px 60px;
+}
+
+/* ---------- Topbar ---------- */
+.topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.brand { display: flex; gap: 14px; align-items: flex-start; }
+
+.brand-icon {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: 12px;
+  background: linear-gradient(145deg, var(--accent-dim), #16351f);
+  border: 1px solid rgba(95, 217, 126, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.brand h1 {
+  margin: 0 0 4px;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.brand p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 13.5px;
+  max-width: 560px;
+  line-height: 1.5;
+}
+
+.brand p code { color: var(--accent); }
+
+.brand-actions { display: flex; gap: 8px; }
+
+/* ---------- Layout ---------- */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 460px;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.form-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+.preview-sticky { position: sticky; top: 20px; }
+
+/* ---------- Card ---------- */
+.card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 18px 18px 20px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.card-head h2 {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--text-faint);
+  font-size: 12.5px;
+}
+
+.badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: var(--accent-glow);
+  color: var(--accent);
+  border: 1px solid rgba(95, 217, 126, 0.35);
+}
+
+.hint {
+  color: var(--text-faint);
+  font-size: 12.5px;
+  line-height: 1.55;
+  margin: 0 0 14px;
+}
+
+.hint code { color: var(--text-dim); }
+
+/* ---------- Fields ---------- */
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+
+.field-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.field-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 550;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  font-size: 13.5px;
+  font-family: var(--sans);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+textarea { resize: vertical; font-family: var(--sans); line-height: 1.4; }
+
+.uuid-row { display: flex; gap: 8px; }
+.uuid-row input { font-family: var(--mono); font-size: 12.5px; }
+
+.version-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+
+.checkbox-field { margin-top: 4px; }
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 400;
+  cursor: pointer;
+  margin: 0;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.radio-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 13px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elev-2);
+  font-size: 13px;
+  color: var(--text-dim);
+  cursor: pointer;
+  flex: 1;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.radio-pill input { accent-color: var(--accent); }
+
+.radio-pill:has(input:checked) {
+  border-color: var(--accent);
+  color: var(--text);
+  background: var(--accent-glow);
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 550;
+  border-radius: var(--radius-sm);
+  padding: 7px 13px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev-2);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn:hover { border-color: #3a4048; color: var(--text); }
+
+.btn-ghost { background: transparent; }
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0b1a0f;
+  font-weight: 650;
+}
+
+.btn-primary:hover { background: #6de08a; border-color: #6de08a; color: #0b1a0f; }
+
+.btn-add {
+  background: var(--accent-glow);
+  border-color: rgba(95, 217, 126, 0.3);
+  color: var(--accent);
+}
+
+.btn-add:hover { background: rgba(95, 217, 126, 0.24); border-color: var(--accent); }
+
+.btn-icon {
+  padding: 9px 12px;
+  flex: none;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.btn-remove {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-faint);
+  padding: 6px 9px;
+  font-size: 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  flex: none;
+}
+
+.btn-remove:hover { color: var(--danger); border-color: rgba(229, 99, 107, 0.4); background: rgba(229, 99, 107, 0.08); }
+
+/* ---------- Stack list (modules / deps) ---------- */
+.stack-list { display: flex; flex-direction: column; gap: 10px; }
+
+.stack-item {
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 12px 14px;
+}
+
+.stack-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.stack-item-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stack-item-title .type-tag {
+  font-family: var(--mono);
+  color: var(--accent);
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 6px;
+}
+
+.stack-item .field { margin-bottom: 10px; }
+.stack-item .field:last-child { margin-bottom: 0; }
+
+.mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mini-grid-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+
+.empty-state {
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 12.5px;
+  padding: 18px 10px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- Chips (capabilities) ---------- */
+.chip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.chip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elev-2);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.chip:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.chip input { accent-color: var(--accent); margin-top: 2px; }
+
+.chip-text { display: flex; flex-direction: column; gap: 1px; }
+.chip-name { font-family: var(--mono); font-size: 12px; color: var(--text); }
+.chip-desc { font-size: 10.5px; color: var(--text-faint); line-height: 1.3; }
+
+/* ---------- Preview / JSON ---------- */
+.preview-card { padding-bottom: 14px; }
+
+.preview-actions { display: flex; gap: 8px; }
+
+.json-view {
+  margin: 0;
+  background: var(--code-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  max-height: 72vh;
+  overflow: auto;
+  font-family: var(--mono);
+  font-size: 12.3px;
+  line-height: 1.65;
+}
+
+.json-view code { white-space: pre; }
+
+/* JSON syntax colors */
+.jk { color: #7fb0e0; }   /* key */
+.js { color: #b5e0a3; }   /* string */
+.jn { color: #e0b45f; }   /* number */
+.jb { color: #d68fe0; }   /* boolean */
+.jp { color: #565d68; }   /* punctuation */
+
+.validation {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.validation-item {
+  font-size: 12px;
+  padding: 8px 11px;
+  border-radius: var(--radius-sm);
+  border: 1px solid;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  line-height: 1.45;
+}
+
+.validation-item.err {
+  color: #f2a1a6;
+  border-color: rgba(229, 99, 107, 0.35);
+  background: rgba(229, 99, 107, 0.08);
+}
+
+.validation-item.warn {
+  color: #f0c98a;
+  border-color: rgba(224, 168, 79, 0.35);
+  background: rgba(224, 168, 79, 0.08);
+}
+
+.validation-item.ok {
+  color: #9fe0af;
+  border-color: rgba(95, 217, 126, 0.3);
+  background: rgba(95, 217, 126, 0.08);
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  margin-top: 34px;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 12px;
+}
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg-elev-2);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 50;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+::selection { background: rgba(95, 217, 126, 0.3); }
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #262b33; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #333a44; }
+
+     </style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">⛏</div>
+      <div>
+        <h1>Bedrock Manifest Generator</h1>
+        <p>Build a valid <code>manifest.json</code> for Minecraft Bedrock behavior packs — including Scripting API modules</p>
+      </div>
+    </div>
+    <div class="brand-actions">
+      <button class="btn btn-ghost" id="loadExampleBtn" type="button">Load Example</button>
+      <button class="btn btn-ghost" id="resetBtn" type="button">Reset</button>
+    </div>
+  </header>
+
+  <main class="layout">
+
+    <!-- ============ FORM COLUMN ============ -->
+    <section class="form-col">
+
+      <!-- FORMAT VERSION -->
+      <div class="card">
+        <div class="card-head">
+          <h2>Format Version</h2>
+          <span class="badge" id="formatVersionBadge">V2</span>
+        </div>
+        <div class="field-row">
+          <label class="radio-pill">
+            <input type="radio" name="formatVersion" value="2" checked>
+            <span>V2 — Stable (recommended)</span>
+          </label>
+          <label class="radio-pill">
+            <input type="radio" name="formatVersion" value="3">
+            <span>V3 — Preview</span>
+          </label>
+        </div>
+        <p class="hint">V2 uses <code>format_version: 2</code> and is supported on all current Bedrock versions. V3 is a preview format with pack settings, texture budgets, and other newer fields — not yet stable.</p>
+      </div>
+
+      <!-- HEADER -->
+      <div class="card">
+        <div class="card-head">
+          <h2>Header</h2>
+        </div>
+
+        <div class="field">
+          <label for="packName">Pack Name</label>
+          <input type="text" id="packName" placeholder="My Behavior Pack" value="My Behavior Pack">
+        </div>
+
+        <div class="field">
+          <label for="packDescription">Description</label>
+          <textarea id="packDescription" rows="2" placeholder="Adds custom mechanics to the game">A custom behavior pack with scripting</textarea>
+        </div>
+
+        <div class="field-grid-2">
+          <div class="field">
+            <label for="headerUuid">Header UUID</label>
+            <div class="uuid-row">
+              <input type="text" id="headerUuid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+              <button class="btn btn-icon" type="button" data-regen="headerUuid" title="Generate new UUID">⟳</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="packVersion">Pack Version</label>
+            <div class="version-row">
+              <input type="number" min="0" id="packVersionMajor" value="1">
+              <input type="number" min="0" id="packVersionMinor" value="0">
+              <input type="number" min="0" id="packVersionPatch" value="0">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-grid-2">
+          <div class="field">
+            <label for="minEngineVersion">Min Engine Version</label>
+            <div class="version-row">
+              <input type="number" min="0" id="minEngineMajor" value="1">
+              <input type="number" min="0" id="minEngineMinor" value="21">
+              <input type="number" min="0" id="minEnginePatch" value="0">
+            </div>
+          </div>
+          <div class="field">
+            <label for="packScope">Pack Scope <span class="optional">(optional)</span></label>
+            <select id="packScope">
+              <option value="">— None —</option>
+              <option value="world">world</option>
+              <option value="global">global</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field checkbox-field">
+          <label class="checkbox-label">
+            <input type="checkbox" id="platformLocked">
+            <span>Platform locked (prevents use on other players' worlds/servers)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- MODULES -->
+      <div class="card">
+        <div class="card-head">
+          <h2>Modules</h2>
+          <button class="btn btn-add" id="addModuleBtn" type="button">+ Add Module</button>
+        </div>
+        <p class="hint">Every pack needs at least one module. Add a <strong>Script</strong> module to enable the Scripting API.</p>
+        <div id="modulesList" class="stack-list"></div>
+      </div>
+
+      <!-- SCRIPT API DEPENDENCIES -->
+      <div class="card" id="scriptDepsCard" hidden>
+        <div class="card-head">
+          <h2>Script API Modules</h2>
+          <button class="btn btn-add" id="addScriptDepBtn" type="button">+ Add API Module</button>
+        </div>
+        <p class="hint">Declare which <code>@minecraft/*</code> Script API modules your code imports from. These become <code>module_name</code> dependencies.</p>
+        <div id="scriptDepsList" class="stack-list"></div>
+      </div>
+
+      <!-- PACK DEPENDENCIES -->
+      <div class="card">
+        <div class="card-head">
+          <h2>Pack Dependencies</h2>
+          <button class="btn btn-add" id="addPackDepBtn" type="button">+ Add Pack Dependency</button>
+        </div>
+        <p class="hint">Link this behavior pack to a companion resource pack or another required pack, by UUID.</p>
+        <div id="packDepsList" class="stack-list"></div>
+      </div>
+
+      <!-- CAPABILITIES -->
+      <div class="card">
+        <div class="card-head">
+          <h2>Capabilities</h2>
+        </div>
+        <p class="hint">Optional engine features this pack makes use of.</p>
+        <div class="chip-grid" id="capabilitiesGrid"></div>
+      </div>
+
+      <!-- METADATA -->
+      <div class="card">
+        <div class="card-head">
+          <h2>Metadata <span class="optional">(optional)</span></h2>
+        </div>
+        <div class="field">
+          <label for="metaAuthors">Author(s)</label>
+          <input type="text" id="metaAuthors" placeholder="YourName, Collaborator2 (comma-separated)">
+        </div>
+        <div class="field-grid-2">
+          <div class="field">
+            <label for="metaLicense">License</label>
+            <input type="text" id="metaLicense" placeholder="MIT">
+          </div>
+          <div class="field">
+            <label for="metaUrl">URL</label>
+            <input type="text" id="metaUrl" placeholder="https://example.com">
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============ PREVIEW COLUMN ============ -->
+    <section class="preview-col">
+      <div class="preview-sticky">
+        <div class="card preview-card">
+          <div class="card-head">
+            <h2>manifest.json</h2>
+            <div class="preview-actions">
+              <button class="btn btn-ghost" id="copyBtn" type="button">Copy</button>
+              <button class="btn btn-primary" id="downloadBtn" type="button">Download</button>
+            </div>
+          </div>
+          <pre class="json-view"><code id="jsonOutput"></code></pre>
+          <div class="validation" id="validationBox"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>Generates client-side only — nothing is uploaded anywhere. Based on the current Bedrock Add-Ons manifest reference.</p>
+  </footer>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    /* ==========================================================================
+   Bedrock Behavior Pack manifest.json Generator
+   ========================================================================== */
+
+// ---- Reference data --------------------------------------------------
+
+const MODULE_TYPES = [
+  { value: "data",         label: "data",          hint: "Behavior pack content (entities, loot tables, recipes, etc.)" },
+  { value: "script",       label: "script",         hint: "Server-side Scripting API (JavaScript)" },
+  { value: "client_data",  label: "client_data",    hint: "Client-side behavior data" },
+  { value: "resources",    label: "resources",      hint: "Resource pack assets (used in resource pack manifests)" },
+  { value: "skin_pack",    label: "skin_pack",      hint: "Skin pack content" },
+  { value: "world_template", label: "world_template", hint: "World template content" },
+  { value: "interface",    label: "interface",      hint: "Interface / UI pack (rare)" },
+];
+
+const CAPABILITIES = [
+  { value: "chemistry",              desc: "Minecraft Education chemistry features" },
+  { value: "experimental_custom_ui", desc: "Allows HTML-based custom UI, scriptable" },
+  { value: "raytraced",              desc: "Ray-traced rendering support (resource packs)" },
+  { value: "pbr",                    desc: "Physically based rendering textures" },
+  { value: "script_eval",            desc: "Allows eval()/Function() in scripts — needs a script module" },
+  { value: "editorExtension",        desc: "Registers the pack as an Editor extension" },
+];
+
+// Known @minecraft script API modules with sensible default versions
+const SCRIPT_API_MODULES = [
+  "@minecraft/server",
+  "@minecraft/server-ui",
+  "@minecraft/server-net",
+  "@minecraft/server-admin",
+  "@minecraft/server-gametest",
+  "@minecraft/server-editor",
+  "@minecraft/common",
+  "@minecraft/debug-utilities",
+];
+
+// ---- State -------------------------------------------------------------
+
+let state = {
+  modules: [],
+  scriptDeps: [],
+  packDeps: [],
+};
+
+let uidCounter = 0;
+function uid() { return `item-${Date.now()}-${uidCounter++}`; }
+
+// ---- UUID generation -----------------------------------------------------
+
+function generateUUID() {
+  if (crypto && crypto.randomUUID) return crypto.randomUUID();
+  // Fallback RFC4122 v4
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+function isValidUUID(str) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str.trim());
+}
+
+// ---- DOM refs ------------------------------------------------------------
+
+const el = (id) => document.getElementById(id);
+
+const headerUuidInput = el("headerUuid");
+const modulesList = el("modulesList");
+const scriptDepsCard = el("scriptDepsCard");
+const scriptDepsList = el("scriptDepsList");
+const packDepsList = el("packDepsList");
+const capabilitiesGrid = el("capabilitiesGrid");
+const jsonOutput = el("jsonOutput");
+const validationBox = el("validationBox");
+const formatVersionBadge = el("formatVersionBadge");
+
+// ---- Init default data -----------------------------------------------
+
+function seedDefaults() {
+  headerUuidInput.value = generateUUID();
+
+  state.modules = [
+    {
+      id: uid(),
+      type: "data",
+      uuid: generateUUID(),
+      description: "Data module",
+      version: "1.0.0",
+    },
+  ];
+
+  state.scriptDeps = [];
+  state.packDeps = [];
+}
+
+// ---- Render: Capabilities -------------------------------------------
+
+function renderCapabilities() {
+  capabilitiesGrid.innerHTML = "";
+  CAPABILITIES.forEach((cap) => {
+    const label = document.createElement("label");
+    label.className = "chip";
+    label.innerHTML = `
+      <input type="checkbox" value="${cap.value}" data-cap="${cap.value}">
+      <span class="chip-text">
+        <span class="chip-name">${cap.value}</span>
+        <span class="chip-desc">${cap.desc}</span>
+      </span>
+    `;
+    capabilitiesGrid.appendChild(label);
+  });
+  capabilitiesGrid.querySelectorAll("input[type=checkbox]").forEach((cb) => {
+    cb.addEventListener("change", rebuild);
+  });
+}
+
+function getSelectedCapabilities() {
+  return Array.from(capabilitiesGrid.querySelectorAll("input[type=checkbox]:checked")).map((cb) => cb.value);
+}
+
+function hasScriptModule() {
+  return state.modules.some((m) => m.type === "script");
+}
+
+// ---- Render: Modules ---------------------------------------------------
+
+function renderModules() {
+  modulesList.innerHTML = "";
+
+  if (state.modules.length === 0) {
+    modulesList.innerHTML = `<div class="empty-state">No modules yet — add at least one.</div>`;
+  }
+
+  state.modules.forEach((mod, index) => {
+    const item = document.createElement("div");
+    item.className = "stack-item";
+
+    const typeOptions = MODULE_TYPES.map(
+      (t) => `<option value="${t.value}" ${t.value === mod.type ? "selected" : ""}>${t.label}</option>`
+    ).join("");
+
+    const isScript = mod.type === "script";
+
+    item.innerHTML = `
+      <div class="stack-item-head">
+        <span class="stack-item-title">Module ${index + 1} <span class="type-tag">${mod.type}</span></span>
+        <button class="btn-remove" type="button" data-remove-module="${mod.id}">Remove</button>
+      </div>
+
+      <div class="field">
+        <label>Type</label>
+        <select data-field="type" data-id="${mod.id}">${typeOptions}</select>
+      </div>
+
+      <div class="field">
+        <label>Description</label>
+        <input type="text" data-field="description" data-id="${mod.id}" value="${escapeAttr(mod.description)}" placeholder="Module description">
+      </div>
+
+      <div class="mini-grid">
+        <div class="field">
+          <label>Module UUID</label>
+          <div class="uuid-row">
+            <input type="text" data-field="uuid" data-id="${mod.id}" value="${escapeAttr(mod.uuid)}">
+            <button class="btn btn-icon" type="button" data-regen-module="${mod.id}" title="Generate new UUID">⟳</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Version</label>
+          <input type="text" data-field="version" data-id="${mod.id}" value="${escapeAttr(mod.version)}" placeholder="1.0.0">
+        </div>
+      </div>
+
+      ${isScript ? `
+      <div class="mini-grid">
+        <div class="field">
+          <label>Language</label>
+          <input type="text" value="javascript" disabled>
+        </div>
+        <div class="field">
+          <label>Entry Point</label>
+          <input type="text" data-field="entry" data-id="${mod.id}" value="${escapeAttr(mod.entry || "scripts/main.js")}" placeholder="scripts/main.js">
+        </div>
+      </div>
+      ` : ""}
+    `;
+
+    modulesList.appendChild(item);
+  });
+
+  // Show/hide script API deps card
+  scriptDepsCard.hidden = !hasScriptModule();
+
+  bindModuleEvents();
+}
+
+function bindModuleEvents() {
+  modulesList.querySelectorAll("[data-field]").forEach((input) => {
+    input.addEventListener("input", (e) => {
+      const id = e.target.dataset.id;
+      const field = e.target.dataset.field;
+      const mod = state.modules.find((m) => m.id === id);
+      if (!mod) return;
+      mod[field] = e.target.value;
+
+      if (field === "type") {
+        if (e.target.value === "script" && !mod.entry) mod.entry = "scripts/main.js";
+        renderModules();
+      }
+      rebuild();
+    });
+  });
+
+  modulesList.querySelectorAll("[data-remove-module]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const id = e.target.dataset.removeModule;
+      state.modules = state.modules.filter((m) => m.id !== id);
+      renderModules();
+      rebuild();
+    });
+  });
+
+  modulesList.querySelectorAll("[data-regen-module]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const id = e.target.dataset.regenModule;
+      const mod = state.modules.find((m) => m.id === id);
+      if (mod) mod.uuid = generateUUID();
+      renderModules();
+      rebuild();
+    });
+  });
+}
+
+function addModule(type = "data") {
+  state.modules.push({
+    id: uid(),
+    type,
+    uuid: generateUUID(),
+    description: type === "script" ? "Script module" : "Data module",
+    version: "1.0.0",
+    entry: type === "script" ? "scripts/main.js" : undefined,
+  });
+  renderModules();
+  rebuild();
+}
+
+// ---- Render: Script API Dependencies ---------------------------------
+
+function renderScriptDeps() {
+  scriptDepsList.innerHTML = "";
+
+  if (state.scriptDeps.length === 0) {
+    scriptDepsList.innerHTML = `<div class="empty-state">No Script API modules added. Click "+ Add API Module" to declare e.g. <code>@minecraft/server</code>.</div>`;
+  }
+
+  state.scriptDeps.forEach((dep, index) => {
+    const item = document.createElement("div");
+    item.className = "stack-item";
+
+    const options = SCRIPT_API_MODULES.map(
+      (name) => `<option value="${name}" ${name === dep.module_name ? "selected" : ""}>${name}</option>`
+    ).join("") + `<option value="__custom__" ${!SCRIPT_API_MODULES.includes(dep.module_name) ? "selected" : ""}>Custom…</option>`;
+
+    const isCustom = !SCRIPT_API_MODULES.includes(dep.module_name);
+
+    item.innerHTML = `
+      <div class="stack-item-head">
+        <span class="stack-item-title">API Module ${index + 1}</span>
+        <button class="btn-remove" type="button" data-remove-scriptdep="${dep.id}">Remove</button>
+      </div>
+      <div class="mini-grid">
+        <div class="field">
+          <label>Module</label>
+          <select data-sfield="module_name_select" data-id="${dep.id}">${options}</select>
+        </div>
+        <div class="field">
+          <label>Version</label>
+          <input type="text" data-sfield="version" data-id="${dep.id}" value="${escapeAttr(dep.version)}" placeholder="1.0.0 or beta">
+        </div>
+      </div>
+      ${isCustom ? `
+      <div class="field">
+        <label>Custom module name</label>
+        <input type="text" data-sfield="module_name_custom" data-id="${dep.id}" value="${escapeAttr(dep.module_name)}" placeholder="@minecraft/server-net">
+      </div>` : ""}
+    `;
+
+    scriptDepsList.appendChild(item);
+  });
+
+  bindScriptDepEvents();
+}
+
+function bindScriptDepEvents() {
+  scriptDepsList.querySelectorAll("[data-sfield]").forEach((input) => {
+    input.addEventListener("input", (e) => {
+      const id = e.target.dataset.id;
+      const field = e.target.dataset.sfield;
+      const dep = state.scriptDeps.find((d) => d.id === id);
+      if (!dep) return;
+
+      if (field === "module_name_select") {
+        if (e.target.value === "__custom__") {
+          dep.module_name = "";
+          renderScriptDeps();
+        } else {
+          dep.module_name = e.target.value;
+        }
+      } else if (field === "module_name_custom") {
+        dep.module_name = e.target.value;
+      } else if (field === "version") {
+        dep.version = e.target.value;
+      }
+      rebuild();
+    });
+  });
+
+  scriptDepsList.querySelectorAll("[data-remove-scriptdep]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const id = e.target.dataset.removeScriptdep;
+      state.scriptDeps = state.scriptDeps.filter((d) => d.id !== id);
+      renderScriptDeps();
+      rebuild();
+    });
+  });
+}
+
+function addScriptDep() {
+  const used = state.scriptDeps.map((d) => d.module_name);
+  const next = SCRIPT_API_MODULES.find((m) => !used.includes(m)) || SCRIPT_API_MODULES[0];
+  state.scriptDeps.push({ id: uid(), module_name: next, version: "1.0.0" });
+  renderScriptDeps();
+  rebuild();
+}
+
+// ---- Render: Pack Dependencies ---------------------------------------
+
+function renderPackDeps() {
+  packDepsList.innerHTML = "";
+
+  if (state.packDeps.length === 0) {
+    packDepsList.innerHTML = `<div class="empty-state">No pack dependencies. Add one to link a resource pack or required behavior pack.</div>`;
+  }
+
+  state.packDeps.forEach((dep, index) => {
+    const item = document.createElement("div");
+    item.className = "stack-item";
+    item.innerHTML = `
+      <div class="stack-item-head">
+        <span class="stack-item-title">Dependency ${index + 1}</span>
+        <button class="btn-remove" type="button" data-remove-packdep="${dep.id}">Remove</button>
+      </div>
+      <div class="field">
+        <label>UUID</label>
+        <div class="uuid-row">
+          <input type="text" data-pfield="uuid" data-id="${dep.id}" value="${escapeAttr(dep.uuid)}" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+          <button class="btn btn-icon" type="button" data-regen-packdep="${dep.id}" title="Generate new UUID">⟳</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Version</label>
+        <input type="text" data-pfield="version" data-id="${dep.id}" value="${escapeAttr(dep.version)}" placeholder="1.0.0">
+      </div>
+    `;
+    packDepsList.appendChild(item);
+  });
+
+  bindPackDepEvents();
+}
+
+function bindPackDepEvents() {
+  packDepsList.querySelectorAll("[data-pfield]").forEach((input) => {
+    input.addEventListener("input", (e) => {
+      const id = e.target.dataset.id;
+      const field = e.target.dataset.pfield;
+      const dep = state.packDeps.find((d) => d.id === id);
+      if (!dep) return;
+      dep[field] = e.target.value;
+      rebuild();
+    });
+  });
+
+  packDepsList.querySelectorAll("[data-remove-packdep]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const id = e.target.dataset.removePackdep;
+      state.packDeps = state.packDeps.filter((d) => d.id !== id);
+      renderPackDeps();
+      rebuild();
+    });
+  });
+
+  packDepsList.querySelectorAll("[data-regen-packdep]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const id = e.target.dataset.regenPackdep;
+      const dep = state.packDeps.find((d) => d.id === id);
+      if (dep) dep.uuid = generateUUID();
+      renderPackDeps();
+      rebuild();
+    });
+  });
+}
+
+function addPackDep() {
+  state.packDeps.push({ id: uid(), uuid: generateUUID(), version: "1.0.0" });
+  renderPackDeps();
+  rebuild();
+}
+
+// ---- Helpers -------------------------------------------------------------
+
+function escapeAttr(str) {
+  if (str === undefined || str === null) return "";
+  return String(str).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+}
+
+function parseVersionString(str, fallback = [1, 0, 0]) {
+  // Accept "1.0.0", "beta", or already-array forms; return array or string
+  if (!str) return fallback;
+  const trimmed = str.trim();
+  if (/^\d+\.\d+\.\d+$/.test(trimmed)) {
+    return trimmed.split(".").map(Number);
+  }
+  // non-numeric (e.g. "beta") -> keep as string, Script API deps allow this
+  return trimmed;
+}
+
+function getFormatVersion() {
+  const checked = document.querySelector('input[name="formatVersion"]:checked');
+  return checked ? checked.value : "2";
+}
+
+// ---- Build manifest object --------------------------------------------
+
+function buildManifest() {
+  const fv = getFormatVersion();
+
+  const packVersion = [
+    parseInt(el("packVersionMajor").value) || 0,
+    parseInt(el("packVersionMinor").value) || 0,
+    parseInt(el("packVersionPatch").value) || 0,
+  ];
+
+  const minEngineVersion = [
+    parseInt(el("minEngineMajor").value) || 0,
+    parseInt(el("minEngineMinor").value) || 0,
+    parseInt(el("minEnginePatch").value) || 0,
+  ];
+
+  const header = {
+    name: el("packName").value || "Untitled Pack",
+    description: el("packDescription").value || "",
+    uuid: headerUuidInput.value.trim(),
+    version: packVersion,
+    min_engine_version: minEngineVersion,
+  };
+
+  const scope = el("packScope").value;
+  if (scope) header.pack_scope = scope;
+
+  if (el("platformLocked").checked) header.platform_locked = true;
+
+  const modules = state.modules.map((m) => {
+    const modOut = {
+      type: m.type,
+      uuid: m.uuid.trim(),
+      version: parseVersionString(m.version),
+    };
+    if (m.description) modOut.description = m.description;
+    if (m.type === "script") {
+      modOut.language = "javascript";
+      modOut.entry = m.entry || "scripts/main.js";
+    }
+    return modOut;
+  });
+
+  const dependencies = [];
+
+  state.packDeps.forEach((d) => {
+    if (d.uuid && d.uuid.trim()) {
+      dependencies.push({
+        uuid: d.uuid.trim(),
+        version: parseVersionString(d.version),
+      });
+    }
+  });
+
+  state.scriptDeps.forEach((d) => {
+    if (d.module_name && d.module_name.trim()) {
+      const versionVal = d.version && d.version.trim() ? d.version.trim() : "1.0.0";
+      dependencies.push({
+        module_name: d.module_name.trim(),
+        version: /^\d+\.\d+\.\d+$/.test(versionVal) || versionVal === "beta" || versionVal.includes("beta")
+          ? versionVal
+          : versionVal,
+      });
+    }
+  });
+
+  const capabilities = getSelectedCapabilities();
+
+  const manifest = {
+    format_version: parseInt(fv),
+    header,
+    modules,
+  };
+
+  if (dependencies.length > 0) manifest.dependencies = dependencies;
+  if (capabilities.length > 0) manifest.capabilities = capabilities;
+
+  const authorsRaw = el("metaAuthors").value.trim();
+  const license = el("metaLicense").value.trim();
+  const url = el("metaUrl").value.trim();
+
+  if (authorsRaw || license || url) {
+    const metadata = {};
+    if (authorsRaw) {
+      metadata.authors = authorsRaw.split(",").map((a) => a.trim()).filter(Boolean);
+    }
+    if (license) metadata.license = license;
+    if (url) metadata.url = url;
+    manifest.metadata = metadata;
+  }
+
+  return manifest;
+}
+
+// ---- Validation ----------------------------------------------------------
+
+function validate(manifest) {
+  const issues = [];
+
+  if (!headerUuidInput.value.trim() || !isValidUUID(headerUuidInput.value)) {
+    issues.push({ level: "err", msg: "Header UUID is missing or not a valid UUID v4 format." });
+  }
+
+  if (!manifest.header.name.trim()) {
+    issues.push({ level: "warn", msg: "Pack name is empty." });
+  }
+
+  if (state.modules.length === 0) {
+    issues.push({ level: "err", msg: "At least one module is required for a valid pack." });
+  }
+
+  // Duplicate module UUIDs
+  const modUuids = state.modules.map((m) => m.uuid.trim().toLowerCase());
+  const dupModUuids = modUuids.filter((u, i) => modUuids.indexOf(u) !== i);
+  if (dupModUuids.length > 0) {
+    issues.push({ level: "err", msg: "Two or more modules share the same UUID — each module needs a unique UUID." });
+  }
+
+  state.modules.forEach((m, i) => {
+    if (!isValidUUID(m.uuid)) {
+      issues.push({ level: "err", msg: `Module ${i + 1} UUID is not a valid UUID.` });
+    }
+    if (m.type === "script" && !m.entry) {
+      issues.push({ level: "warn", msg: `Module ${i + 1} (script) has no entry point set.` });
+    }
+  });
+
+  // Module UUID vs header UUID collision
+  if (modUuids.includes(headerUuidInput.value.trim().toLowerCase())) {
+    issues.push({ level: "err", msg: "A module UUID is identical to the header UUID — these must all be different." });
+  }
+
+  // Script module present but no @minecraft/server dependency
+  if (hasScriptModule()) {
+    const hasServerDep = state.scriptDeps.some((d) => d.module_name === "@minecraft/server");
+    if (!hasServerDep) {
+      issues.push({ level: "warn", msg: "You have a script module but haven't declared the @minecraft/server API dependency — most scripts need it." });
+    }
+    if (state.scriptDeps.length === 0) {
+      issues.push({ level: "warn", msg: "Script module added, but no Script API modules declared under dependencies." });
+    }
+  }
+
+  const selectedCaps = getSelectedCapabilities();
+  if (selectedCaps.includes("script_eval") && !hasScriptModule()) {
+    issues.push({ level: "warn", msg: "'script_eval' capability requires a script module to have any effect." });
+  }
+
+  // Pack dependency UUID validity
+  state.packDeps.forEach((d, i) => {
+    if (d.uuid && !isValidUUID(d.uuid)) {
+      issues.push({ level: "err", msg: `Pack dependency ${i + 1} UUID is not valid.` });
+    }
+  });
+
+  if (issues.length === 0) {
+    issues.push({ level: "ok", msg: "Manifest looks structurally valid." });
+  }
+
+  return issues;
+}
+
+function renderValidation(issues) {
+  validationBox.innerHTML = issues
+    .map((i) => {
+      const icon = i.level === "err" ? "✕" : i.level === "warn" ? "⚠" : "✓";
+      return `<div class="validation-item ${i.level}"><span>${icon}</span><span>${i.msg}</span></div>`;
+    })
+    .join("");
+}
+
+// ---- JSON syntax highlighting -------------------------------------------
+
+function syntaxHighlight(json) {
+  const str = JSON.stringify(json, null, 2);
+  const escaped = str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  return escaped.replace(
+    /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false)\b|null|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
+    (match) => {
+      let cls = "jn";
+      if (/^"/.test(match)) {
+        cls = /:$/.test(match) ? "jk" : "js";
+      } else if (/true|false/.test(match)) {
+        cls = "jb";
+      } else if (/null/.test(match)) {
+        cls = "jp";
+      }
+      return `<span class="${cls}">${match}</span>`;
+    }
+  );
+}
+
+// ---- Main rebuild ----------------------------------------------------
+
+function rebuild() {
+  formatVersionBadge.textContent = "V" + getFormatVersion();
+  const manifest = buildManifest();
+  jsonOutput.innerHTML = syntaxHighlight(manifest);
+  const issues = validate(manifest);
+  renderValidation(issues);
+  return manifest;
+}
+
+// ---- Toast ---------------------------------------------------------------
+
+let toastTimer;
+function showToast(msg) {
+  const toast = el("toast");
+  toast.textContent = msg;
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+}
+
+// ---- Event wiring ----------------------------------------------------
+
+function wireStaticEvents() {
+  // Any plain input change rebuilds
+  [
+    "packName", "packDescription", "headerUuid",
+    "packVersionMajor", "packVersionMinor", "packVersionPatch",
+    "minEngineMajor", "minEngineMinor", "minEnginePatch",
+    "packScope", "platformLocked",
+    "metaAuthors", "metaLicense", "metaUrl",
+  ].forEach((id) => {
+    const node = el(id);
+    node.addEventListener("input", rebuild);
+    node.addEventListener("change", rebuild);
+  });
+
+  document.querySelectorAll('input[name="formatVersion"]').forEach((r) => {
+    r.addEventListener("change", rebuild);
+  });
+
+  el("regenHeaderBtn");
+  document.querySelector('[data-regen="headerUuid"]').addEventListener("click", () => {
+    headerUuidInput.value = generateUUID();
+    rebuild();
+  });
+
+  el("addModuleBtn").addEventListener("click", () => addModule("data"));
+  el("addScriptDepBtn").addEventListener("click", addScriptDep);
+  el("addPackDepBtn").addEventListener("click", addPackDep);
+
+  el("copyBtn").addEventListener("click", () => {
+    const manifest = buildManifest();
+    const text = JSON.stringify(manifest, null, 2);
+    navigator.clipboard.writeText(text).then(() => showToast("Copied manifest.json to clipboard"));
+  });
+
+  el("downloadBtn").addEventListener("click", () => {
+    const manifest = buildManifest();
+    const text = JSON.stringify(manifest, null, 2);
+    const blob = new Blob([text], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "manifest.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast("Downloaded manifest.json");
+  });
+
+  el("resetBtn").addEventListener("click", () => {
+    if (!confirm("Reset all fields to a blank single-module pack?")) return;
+    el("packName").value = "My Behavior Pack";
+    el("packDescription").value = "";
+    el("packVersionMajor").value = 1;
+    el("packVersionMinor").value = 0;
+    el("packVersionPatch").value = 0;
+    el("minEngineMajor").value = 1;
+    el("minEngineMinor").value = 21;
+    el("minEnginePatch").value = 0;
+    el("packScope").value = "";
+    el("platformLocked").checked = false;
+    el("metaAuthors").value = "";
+    el("metaLicense").value = "";
+    el("metaUrl").value = "";
+    capabilitiesGrid.querySelectorAll("input[type=checkbox]").forEach((cb) => (cb.checked = false));
+    seedDefaults();
+    renderModules();
+    renderScriptDeps();
+    renderPackDeps();
+    rebuild();
+  });
+
+  el("loadExampleBtn").addEventListener("click", loadFullExample);
+}
+
+// ---- Full "everything" example (scripting + all the trimmings) --------
+
+function loadFullExample() {
+  el("packName").value = "Full Feature Behavior Pack";
+  el("packDescription").value = "Example pack demonstrating scripting, dependencies, capabilities and metadata";
+  headerUuidInput.value = generateUUID();
+
+  el("packVersionMajor").value = 1;
+  el("packVersionMinor").value = 0;
+  el("packVersionPatch").value = 0;
+
+  el("minEngineMajor").value = 1;
+  el("minEngineMinor").value = 21;
+  el("minEnginePatch").value = 0;
+
+  el("packScope").value = "world";
+  el("platformLocked").checked = false;
+
+  state.modules = [
+    { id: uid(), type: "data", uuid: generateUUID(), description: "Data module", version: "1.0.0" },
+    { id: uid(), type: "script", uuid: generateUUID(), description: "Server scripts", version: "1.0.0", entry: "scripts/main.js" },
+  ];
+
+  state.scriptDeps = [
+    { id: uid(), module_name: "@minecraft/server", version: "1.13.0" },
+    { id: uid(), module_name: "@minecraft/server-ui", version: "1.2.0" },
+  ];
+
+  state.packDeps = [
+    { id: uid(), uuid: generateUUID(), version: "1.0.0" }, // companion resource pack
+  ];
+
+  renderModules();
+  renderScriptDeps();
+  renderPackDeps();
+
+  capabilitiesGrid.querySelectorAll("input[type=checkbox]").forEach((cb) => {
+    cb.checked = cb.value === "script_eval";
+  });
+
+  el("metaAuthors").value = "YourName";
+  el("metaLicense").value = "MIT";
+  el("metaUrl").value = "https://example.com";
+
+  rebuild();
+  showToast("Loaded full example");
+}
+
+// ---- Boot ------------------------------------------------------------
+
+function init() {
+  seedDefaults();
+  renderCapabilities();
+  renderModules();
+  renderScriptDeps();
+  renderPackDeps();
+  wireStaticEvents();
+  rebuild();
+}
+
+document.addEventListener("DOMContentLoaded", init);
+
+</script>
+</body>
+</html>
