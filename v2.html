@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Allou Mohamed | Full Stack Developer</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg-primary: #0a0b0f;
+        --bg-secondary: #12141a;
+        --bg-card: #15171e;
+        --bg-elevated: #1a1d26;
+        --border: rgba(255, 255, 255, 0.08);
+        --border-hover: rgba(255, 255, 255, 0.16);
+        --accent: #6366f1;
+        --accent-2: #22d3ee;
+        --accent-3: #f472b6;
+        --text-primary: #f5f6fa;
+        --text-secondary: #9aa0ae;
+        --text-tertiary: #5b6070;
+        --sidebar-w: 260px;
+        --radius: 14px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+        font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        overflow-x: hidden;
+    }
+
+    ::selection { background: var(--accent); color: #fff; }
+
+    /* subtle background glow, no particles/noise */
+    .bg-glow {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background:
+            radial-gradient(600px circle at 15% 10%, rgba(99, 102, 241, 0.12), transparent 60%),
+            radial-gradient(500px circle at 90% 80%, rgba(34, 211, 238, 0.08), transparent 60%);
+    }
+
+    a { color: inherit; }
+
+    /* ---------- SIDEBAR ---------- */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: var(--sidebar-w);
+        height: 100vh;
+        background: var(--bg-secondary);
+        border-right: 1px solid var(--border);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        padding: 2rem 1.5rem;
+    }
+
+    .sidebar-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 2.5rem;
+        text-decoration: none;
+    }
+
+    .sidebar-logo .mark {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700;
+        font-size: 1rem;
+        color: #0a0b0f;
+        flex-shrink: 0;
+    }
+
+    .sidebar-logo .name {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.95rem;
+        font-weight: 600;
+        letter-spacing: -0.3px;
+        color: var(--text-primary);
+    }
+
+    .sidebar-profile {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        padding: 0.9rem;
+        border-radius: var(--radius);
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        margin-bottom: 2rem;
+    }
+
+    .sidebar-profile img {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .sidebar-profile-info .pname {
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .sidebar-profile-info .prole {
+        font-size: 0.7rem;
+        color: var(--accent-2);
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        flex: 1;
+    }
+
+    .nav-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.68rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin: 1rem 0 0.5rem 0.85rem;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        padding: 0.7rem 0.85rem;
+        border-radius: 10px;
+        text-decoration: none;
+        color: var(--text-secondary);
+        font-size: 0.88rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .nav-item i {
+        width: 18px;
+        text-align: center;
+        font-size: 0.9rem;
+    }
+
+    .nav-item:hover {
+        background: var(--bg-card);
+        color: var(--text-primary);
+    }
+
+    .nav-item.active {
+        background: var(--bg-elevated);
+        color: var(--text-primary);
+    }
+
+    .nav-item.active::before {
+        content: '';
+        position: absolute;
+        left: -1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 60%;
+        background: linear-gradient(180deg, var(--accent), var(--accent-2));
+        border-radius: 2px;
+    }
+
+    .sidebar-footer {
+        display: flex;
+        gap: 0.6rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .sidebar-social {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+
+    .sidebar-social:hover {
+        color: var(--text-primary);
+        border-color: var(--border-hover);
+        transform: translateY(-2px);
+    }
+
+    /* mobile top bar + toggle */
+    .mobile-topbar {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 64px;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border);
+        z-index: 1100;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1.25rem;
+    }
+
+    .menu-toggle {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.1rem;
+    }
+
+    .sidebar-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 999;
+    }
+
+    /* ---------- MAIN ---------- */
+    .main {
+        margin-left: var(--sidebar-w);
+        position: relative;
+        z-index: 10;
+        min-height: 100vh;
+    }
+
+    .container {
+        max-width: 980px;
+        padding: 0 clamp(1.5rem, 4vw, 4rem);
+        margin: 0 auto;
+    }
+
+    /* ---------- HERO ---------- */
+    .hero {
+        min-height: 92vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding-top: 4rem;
+    }
+
+    .hero-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: fit-content;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.78rem;
+        color: var(--accent-2);
+        background: rgba(34, 211, 238, 0.08);
+        border: 1px solid rgba(34, 211, 238, 0.2);
+        padding: 0.4rem 0.9rem;
+        border-radius: 100px;
+        margin-bottom: 2rem;
+        opacity: 0;
+        animation: fadeInUp 0.8s ease forwards 0.1s;
+    }
+
+    .hero-title {
+        font-size: clamp(2.6rem, 6.5vw, 5rem);
+        font-weight: 700;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        margin-bottom: 1.5rem;
+        opacity: 0;
+        animation: fadeInUp 0.8s ease forwards 0.25s;
+    }
+
+    .hero-title .accent-text {
+        background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        background-size: 200% auto;
+        animation: gradient 4s ease infinite;
+    }
+
+    @keyframes gradient {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    .hero-description {
+        max-width: 560px;
+        font-size: clamp(1rem, 1.6vw, 1.1rem);
+        line-height: 1.75;
+        color: var(--text-secondary);
+        margin-bottom: 2.5rem;
+        opacity: 0;
+        animation: fadeInUp 0.8s ease forwards 0.4s;
+    }
+
+    .hero-description strong { color: var(--text-primary); }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-cta {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        opacity: 0;
+        animation: fadeInUp 0.8s ease forwards 0.55s;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.9rem 1.7rem;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.92rem;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 10px;
+        transition: all 0.25s ease;
+        border: 1px solid transparent;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--accent), #4f46e5);
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.35);
+    }
+
+    .btn-ghost {
+        background: var(--bg-card);
+        border-color: var(--border);
+        color: var(--text-primary);
+    }
+
+    .btn-ghost:hover {
+        border-color: var(--border-hover);
+        transform: translateY(-2px);
+    }
+
+    .hero-stats {
+        display: flex;
+        gap: 2.5rem;
+        margin-top: 3.5rem;
+        flex-wrap: wrap;
+        opacity: 0;
+        animation: fadeInUp 0.8s ease forwards 0.7s;
+    }
+
+    .hero-stat-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-stat-label {
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-top: 0.25rem;
+    }
+
+    /* ---------- SECTIONS ---------- */
+    section.block {
+        padding: 6rem 0;
+        border-top: 1px solid var(--border);
+    }
+
+    .section-eyebrow {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        color: var(--accent-2);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        margin-bottom: 2.5rem;
+    }
+
+    .about-text {
+        font-size: 1.05rem;
+        line-height: 1.85;
+        color: var(--text-secondary);
+        max-width: 680px;
+        margin-bottom: 2.5rem;
+    }
+
+    .about-text strong { color: var(--text-primary); }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+        max-width: 680px;
+    }
+
+    .info-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.25rem;
+        transition: all 0.25s ease;
+    }
+
+    .info-card:hover {
+        border-color: var(--border-hover);
+        transform: translateY(-3px);
+    }
+
+    .info-card-value {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .info-card-label {
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 0.85rem;
+    }
+
+    .tech-tag {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.9rem 1.1rem;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 0.88rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        transition: all 0.25s ease;
+    }
+
+    .tech-tag i {
+        color: var(--accent-2);
+        font-size: 1rem;
+    }
+
+    .tech-tag:hover {
+        border-color: var(--border-hover);
+        color: var(--text-primary);
+        transform: translateY(-3px);
+    }
+
+    .services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .service-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.75rem;
+        transition: all 0.25s ease;
+    }
+
+    .service-card:hover {
+        border-color: var(--border-hover);
+        transform: translateY(-4px);
+        background: var(--bg-elevated);
+    }
+
+    .service-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(99,102,241,0.18), rgba(34,211,238,0.18));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent-2);
+        font-size: 1.1rem;
+        margin-bottom: 1.1rem;
+    }
+
+    .service-title {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .service-text {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    /* ---------- CONTACT / FOOTER ---------- */
+    .contact-card {
+        background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(244,114,182,0.08));
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: clamp(2rem, 5vw, 3.5rem);
+        text-align: center;
+    }
+
+    .contact-card h2 {
+        font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+        font-weight: 700;
+        margin-bottom: 1rem;
+        letter-spacing: -0.5px;
+    }
+
+    .contact-card p {
+        color: var(--text-secondary);
+        max-width: 480px;
+        margin: 0 auto 2rem;
+        line-height: 1.7;
+    }
+
+    .contact-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .footer {
+        padding: 2.5rem clamp(1.5rem, 4vw, 4rem) 3rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        border-top: 1px solid var(--border);
+        margin-top: 2rem;
+    }
+
+    .footer-text {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
+    }
+
+    /* scroll-reveal */
+    .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 900px) {
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            top: 64px;
+            height: calc(100vh - 64px);
+        }
+        .sidebar.open { transform: translateX(0); }
+        .mobile-topbar { display: flex; }
+        .sidebar-backdrop.open { display: block; }
+        .main { margin-left: 0; padding-top: 64px; }
+    }
+
+    @media (max-width: 480px) {
+        .hero-cta { width: 100%; }
+        .btn { flex: 1; justify-content: center; }
+        .hero-stats { gap: 1.5rem; }
+    }
+</style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<!-- Mobile top bar -->
+<div class="mobile-topbar">
+    <a href="#home" class="sidebar-logo" style="margin:0;">
+        <div class="mark">AM</div>
+        <span class="name">PROARCODER</span>
+    </a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Open menu">
+        <i class="fas fa-bars"></i>
+    </button>
+</div>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <a href="#home" class="sidebar-logo">
+        <div class="mark">AM</div>
+        <span class="name">PROARCODER</span>
+    </a>
+
+    <div class="sidebar-profile">
+        <img src="https://i.pinimg.com/736x/6e/21/9b/6e219be37375e9f0edd83a92f0c51163.jpg" alt="Allou Mohamed">
+        <div class="sidebar-profile-info">
+            <div class="pname">Allou Mohamed</div>
+            <div class="prole">Full Stack Dev</div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-label">Menu</div>
+        <a href="#home" class="nav-item active" data-section="home"><i class="fas fa-house"></i> Home</a>
+        <a href="#about" class="nav-item" data-section="about"><i class="fas fa-user"></i> About</a>
+        <a href="#stack" class="nav-item" data-section="stack"><i class="fas fa-layer-group"></i> Tech Stack</a>
+        <a href="#services" class="nav-item" data-section="services"><i class="fas fa-gears"></i> What I Do</a>
+        <a href="#contact" class="nav-item" data-section="contact"><i class="fas fa-envelope"></i> Contact</a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <a href="https://github.com/varnosbit" target="_blank" class="sidebar-social"><i class="fab fa-github"></i></a>
+        <a href="https://dz.linkedin.com/in/mohamed-allou-23497b384" target="_blank" class="sidebar-social"><i class="fab fa-linkedin"></i></a>
+        <a href="https://facebook.com/Proarcoder" target="_blank" class="sidebar-social"><i class="fab fa-facebook"></i></a>
+        <a href="mailto:alloumohamed226@gmail.com" class="sidebar-social"><i class="fas fa-envelope"></i></a>
+    </div>
+</aside>
+
+<!-- Main content -->
+<div class="main">
+    <div class="container">
+
+        <section class="hero" id="home">
+            <div class="hero-label">
+                <i class="fas fa-code"></i>
+                <span>Available for work</span>
+            </div>
+            <h1 class="hero-title">
+                Building digital<br>
+                <span class="accent-text">futures</span> in code.
+            </h1>
+            <p class="hero-description">
+                I'm <strong>Allou Mohamed</strong>, a 20-year-old full stack developer from Algeria.
+                I build modern web applications with <strong>Node.js</strong>, <strong>Express</strong>,
+                and <strong>React</strong> — learning and shipping projects to sharpen my craft every day.
+            </p>
+            <div class="hero-cta">
+                <a href="mailto:alloumohamed226@gmail.com" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Get in touch
+                </a>
+                <a href="https://github.com/varnosbit" target="_blank" class="btn btn-ghost">
+                    <i class="fab fa-github"></i> View work
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div>
+                    <div class="hero-stat-value">20</div>
+                    <div class="hero-stat-label">Years Old</div>
+                </div>
+                <div>
+                    <div class="hero-stat-value">8+</div>
+                    <div class="hero-stat-label">Technologies</div>
+                </div>
+                <div>
+                    <div class="hero-stat-value">∞</div>
+                    <div class="hero-stat-label">Projects</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="block reveal" id="about">
+            <div class="section-eyebrow">[ 01 ]</div>
+            <h2 class="section-title">About Me</h2>
+            <p class="about-text">
+                A passionate programmer from <strong>Algeria</strong>, continuously learning and building
+                websites and applications to grow real-world experience. Currently studying programming
+                and creating projects to test and sharpen my skills in web development.
+            </p>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-card-value">20</div>
+                    <div class="info-card-label">Years Old</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-card-value">∞</div>
+                    <div class="info-card-label">Projects</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-card-value">DZ</div>
+                    <div class="info-card-label">Algeria</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="block reveal" id="stack">
+            <div class="section-eyebrow">[ 02 ]</div>
+            <h2 class="section-title">Tech Stack</h2>
+            <div class="tech-grid">
+                <div class="tech-tag"><i class="fab fa-node-js"></i> Node.js</div>
+                <div class="tech-tag"><i class="fas fa-server"></i> Express.js</div>
+                <div class="tech-tag"><i class="fab fa-js"></i> JavaScript</div>
+                <div class="tech-tag"><i class="fab fa-react"></i> React</div>
+                <div class="tech-tag"><i class="fas fa-leaf"></i> MongoDB</div>
+                <div class="tech-tag"><i class="fab fa-git-alt"></i> Git</div>
+                <div class="tech-tag"><i class="fab fa-html5"></i> HTML5</div>
+                <div class="tech-tag"><i class="fab fa-css3-alt"></i> CSS3</div>
+            </div>
+        </section>
+
+        <section class="block reveal" id="services">
+            <div class="section-eyebrow">[ 03 ]</div>
+            <h2 class="section-title">What I Do</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon"><i class="fas fa-layer-group"></i></div>
+                    <div class="service-title">Full-Stack Development</div>
+                    <div class="service-text">Building end-to-end web applications with modern technologies.</div>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon"><i class="fas fa-plug"></i></div>
+                    <div class="service-title">API Development</div>
+                    <div class="service-text">Creating robust RESTful services with Express.js.</div>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon"><i class="fas fa-display"></i></div>
+                    <div class="service-title">Frontend Development</div>
+                    <div class="service-text">Crafting interactive and responsive user interfaces.</div>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon"><i class="fas fa-database"></i></div>
+                    <div class="service-title">Backend Architecture</div>
+                    <div class="service-text">Designing scalable, reliable server-side solutions.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="block reveal" id="contact">
+            <div class="contact-card">
+                <h2>Let's build something together</h2>
+                <p>Have a project in mind or just want to say hi? My inbox is always open.</p>
+                <div class="contact-actions">
+                    <a href="mailto:alloumohamed226@gmail.com" class="btn btn-primary">
+                        <i class="fas fa-envelope"></i> Email Me
+                    </a>
+                    <a href="https://dz.linkedin.com/in/mohamed-allou-23497b384" target="_blank" class="btn btn-ghost">
+                        <i class="fab fa-linkedin"></i> LinkedIn
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <footer class="footer">
+        <div class="footer-text">© 2025 Allou Mohamed • All Rights Reserved</div>
+        <div class="footer-text">Built with care in Algeria</div>
+    </footer>
+</div>
+
+<script>
+    // Mobile sidebar toggle
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menuToggle');
+    const backdrop = document.getElementById('sidebarBackdrop');
+
+    function openSidebar() {
+        sidebar.classList.add('open');
+        backdrop.classList.add('open');
+    }
+    function closeSidebar() {
+        sidebar.classList.remove('open');
+        backdrop.classList.remove('open');
+    }
+
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+    });
+    backdrop.addEventListener('click', closeSidebar);
+
+    document.querySelectorAll('.nav-item').forEach(link => {
+        link.addEventListener('click', closeSidebar);
+    });
+
+    // Scroll reveal
+    const revealEls = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+    revealEls.forEach(el => revealObserver.observe(el));
+
+    // Active nav link on scroll
+    const sections = document.querySelectorAll('section[id]');
+    const navItems = document.querySelectorAll('.nav-item');
+
+    const navObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.getAttribute('id');
+                navItems.forEach(item => {
+                    item.classList.toggle('active', item.dataset.section === id);
+                });
+            }
+        });
+    }, { threshold: 0.3, rootMargin: '-20% 0px -60% 0px' });
+
+    sections.forEach(sec => navObserver.observe(sec));
+</script>
+
+</body>
+</html>
