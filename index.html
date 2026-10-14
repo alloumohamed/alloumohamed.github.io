@@ -76,6 +76,23 @@
   .panel::before { top: -1px; right: -1px; border-top-width: 2px; border-right-width: 2px; }
   .panel::after { bottom: -1px; left: -1px; border-bottom-width: 2px; border-left-width: 2px; }
 
+  /* Scan bar: sweeps top to bottom while the interface is visible */
+  .scan { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 5; }
+  .scan::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 90px;
+    background: linear-gradient(180deg, transparent, rgba(227,18,28,.16));
+    animation: scan 4.5s cubic-bezier(.4,0,.6,1) infinite;
+  }
+  .scan::after {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+    background: var(--red);
+    box-shadow: 0 0 12px 2px rgba(227,18,28,.8), 0 0 36px 6px rgba(227,18,28,.35);
+    animation: scan-line 4.5s cubic-bezier(.4,0,.6,1) infinite;
+  }
+  @keyframes scan { 0% { transform: translateY(-90px); } 100% { transform: translateY(var(--h, 900px)); } }
+  @keyframes scan-line { 0% { transform: translateY(0); } 100% { transform: translateY(var(--h, 900px)); } }
+  body.idle .scan::before, body.idle .scan::after { animation-play-state: paused; }
+
   /* Status bar */
   .bar {
     display: flex; align-items: center; gap: 12px;
@@ -260,6 +277,7 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .pfp, .dot { animation: none; }
+    .scan { display: none; }
     h1::after, .prompt::after { animation: none; }
     footer .l { animation: write .01ms forwards; animation-delay: 0s; }
     * { transition-duration: .01ms !important; }
@@ -272,7 +290,8 @@
   <canvas id="rain" aria-hidden="true"></canvas>
 
   <main>
-    <div class="panel">
+    <div class="panel" id="panel">
+      <div class="scan" aria-hidden="true"></div>
       <header class="bar">
         <span class="dot"></span>
         <span>PROARCODER</span>
@@ -290,13 +309,13 @@
           <h1>Allou Mohamed</h1>
           <p class="handle">@PROARCODER</p>
           <p class="tagline" id="tagline"></p>
-          <div class="tags"><span>19Y</span><span>Algeria</span></div>
+          <div class="tags"><span id="ageTag">20Y</span><span>Algeria</span></div>
         </div>
       </div>
 
       <div class="stats">
-        <div><b>19Y</b><span>Age</span></div>
-        <div><b>Student</b><span>Status</span></div>
+        <div><b id="ageStat">20Y</b><span>Age</span></div>
+        <div><b>Developer</b><span>Status</span></div>
         <div><b>Algeria</b><span>Country</span></div>
         <div><b>10/10</b><span>Trustfactor</span></div>
       </div>
@@ -414,10 +433,33 @@
   frame();
 })();
 
+/* ---------- Age from date of birth (4 Feb 2006) ---------- */
+const BIRTH = new Date(2006, 1, 4);
+function getAge() {
+  const now = new Date();
+  let age = now.getFullYear() - BIRTH.getFullYear();
+  const m = now.getMonth() - BIRTH.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < BIRTH.getDate())) age--;
+  return age;
+}
+const AGE = getAge();
+document.getElementById('ageTag').textContent = AGE + 'Y';
+document.getElementById('ageStat').textContent = AGE + 'Y';
+
+/* ---------- Scan bar travel distance = panel height ---------- */
+(() => {
+  const panel = document.getElementById('panel');
+  const set = () => panel.style.setProperty('--h', panel.offsetHeight + 'px');
+  set();
+  addEventListener('resize', set);
+  addEventListener('load', set);
+  if (window.ResizeObserver) new ResizeObserver(set).observe(panel);
+})();
+
 /* ---------- Typed tagline ---------- */
 (() => {
   const el = document.getElementById('tagline');
-  const lines = ["I'm from Algeria.", "I'm 19 years old.", "Building things while it rains."];
+  const lines = ["I'm from Algeria.", `I'm ${AGE} years old.`, "Building things while it rains."];
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = lines[0]; return; }
   let li = 0, ci = 0, del = false;
   (function tick() {
