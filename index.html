@@ -260,6 +260,7 @@
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let w, h, dpr, drops = [], splashes = [], wind = 0.18, targetWind = 0.18;
 
+
   function resize() {
     dpr = Math.min(devicePixelRatio || 1, 2);
     w = innerWidth; h = innerHeight;
